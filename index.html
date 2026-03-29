@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZENITH ORACLE พยากรณ์ชะตานำพาชีวิต</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z'/><path d='M20 3v4'/><path d='M22 5h-4'/><path d='M4 17v2'/><path d='M5 18H3'/></svg>">
+
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Anuphan:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+    <button id="sound-toggle" class="sound-toggle" onclick="toggleSound()">
+        <i data-lucide="volume-2"></i>
+    </button>
+
+    <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">
+        <i data-lucide="palette"></i>
+    </button>
+
+    <div class="stars-container"></div>
+    <div class="magic-dust"></div>
+    
+    <div class="container">
+        <section id="step-1" class="scene active">
+            <div class="logo-wrapper">
+                <div class="main-logo">
+                    <i data-lucide="sparkles" class="logo-icon"></i>
+                </div>
+                <h1 class="glow-text">ZENITH ORACLE</h1>
+                <div class="divider"><span>ESTB 2026</span></div>
+            </div>
+            
+            <div class="user-info-card">
+                <div class="input-group">
+                    <label><i data-lucide="user" size="16"></i> ชื่อของคุณ</label>
+                    <input type="text" id="user-name" placeholder="ระบุชื่อ-นามสกุล...">
+                </div>
+                
+                <div class="input-group">
+                    <label><i data-lucide="crosshair" size="16"></i> เรื่องที่ต้องการดูดวง</label>
+                    <select id="user-topic">
+                        <option value="general">ภาพรวมชีวิตและอนาคต</option>
+                        <option value="love">ความรัก และ ความสัมพันธ์</option>
+                        <option value="money">การเงิน และ โชคลาภ</option>
+                        <option value="work">การงาน และ การเรียน</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label><i data-lucide="layers" size="16"></i> รูปแบบการเปิดไพ่</label>
+                    <select id="user-spread">
+                        <option value="3">เปิดไพ่ 3 ใบ (อดีต, ปัจจุบัน, อนาคต)</option>
+                        <option value="4">เปิดไพ่ 4 ใบ (เจาะลึกความรัก: เรา/เขา/อุปสรรค/สรุป)</option>
+                        <option value="1">เปิดไพ่ 1 ใบ (คำแนะนำรายวันแบบกระชับ)</option>
+                    </select>
+                </div>
+                 
+                <div class="input-group">
+                    <label><i data-lucide="help-circle" size="16"></i> คำถามในใจ (ถ้ามี)</label>
+                    <input type="text" id="user-question" placeholder="เช่น พรุ่งนี้สัมภาษณ์งานจะผ่านไหม?">
+                </div>
+
+                <div class="input-group">
+                    <label><i data-lucide="calendar-days" size="16"></i> คุณเกิดวันอะไร?</label>
+                    <select id="user-day">
+                        <option value="0">วันอาทิตย์ (Sunday)</option>
+                        <option value="1">วันจันทร์ (Monday)</option>
+                        <option value="2">วันอังคาร (Tuesday)</option>
+                        <option value="3">วันพุธ (Wednesday)</option>
+                        <option value="4">วันพฤหัสบดี (Thursday)</option>
+                        <option value="5">วันศุกร์ (Friday)</option>
+                        <option value="6">วันเสาร์ (Saturday)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label><i data-lucide="milestone" size="16"></i> วันเดือนปีเกิด (ค.ศ.)</label>
+                    <input type="date" id="user-dob">
+                </div>
+                <button class="btn-shine" onclick="startReading()">
+                    <span>เริ่มต้นคำทำนาย</span>
+                    <i data-lucide="arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="step-2" class="scene">
+            <div class="reading-header">
+                <h2 class="gold-text" id="deck-title">เลือกไพ่พยากรณ์</h2>
+                <div class="progress-info">
+                    <div class="progress-bar-bg">
+                        <div id="progress-bar"></div>
+                    </div>
+                    <p id="progress-text">เลือกไพ่ที่ดึงดูดใจคุณ 0 / 3 ใบ</p>
+
+                    <h3 id="focus-question-display" class="focus-question" style="display: none;"></h3>
+                </div>
+            </div>
+
+            <div class="oracle-sanctuary">
+                <div class="magic-circle-bg"></div>
+                
+                <img src="oracle.jpg" class="oracle-character" alt="Blindfolded Oracle">
+                
+                <div class="soul-orb orb-left"></div>
+                <div class="soul-orb orb-right"></div>
+
+                <div class="floating-candle c-1"></div>
+                <div class="floating-candle c-2"></div>
+                <div class="floating-candle c-3"></div>
+                <div class="floating-candle c-4"></div>
+            </div>
+
+            <div class="table-spread" id="table-spread-container"></div>
+            
+             <div class="mystic-smoke-container">
+                <div class="mystic-smoke"></div>
+            </div>
+
+            <div class="card-deck" id="card-deck"></div>
+        </section>
+
+        <section id="step-3" class="scene">
+            <div class="result-wrapper">
+                <div id="personal-traits" class="personal-traits"></div>
+                <div id="soul-card-highlight" class="soul-highlight-box"></div>
+                
+                <h2 id="res-user-title">คำทำนายของคุณ</h2>
+                
+                <h3 id="res-question-display" class="res-question" style="display: none;"></h3>
+                
+                <div class="score-container">
+                    <div class="score-card"><i data-lucide="heart" class="icon-love"></i> <div id="score-love"></div></div>
+                    <div class="score-card"><i data-lucide="coins" class="icon-money"></i> <div id="score-money"></div></div>
+                    <div class="score-card"><i data-lucide="briefcase" class="icon-work"></i> <div id="score-work"></div></div>
+                </div>
+
+                <div id="detailed-results" class="results-grid"></div>
+
+                <div id="oracle-blessing" class="oracle-box" style="display: none;"></div>
+
+               <div class="final-actions">
+                    <button class="btn-primary" onclick="location.reload()">ทำนายใหม่อีกครั้ง</button>
+                    <button id="btn-read" class="btn-outline" onclick="toggleReadPrediction()" style="background: rgba(212, 175, 55, 0.1);">
+                        <i data-lucide="volume-2"></i> ฟังคำทำนาย
+                    </button>
+                    <button id="btn-save" class="btn-outline" onclick="savePrediction()">
+                        <i data-lucide="download"></i> เซฟรูปภาพ
+                    </button>
+                    <button id="btn-share" class="btn-outline" onclick="sharePrediction()">
+                        <i data-lucide="share-2"></i> แชร์ผลลัพธ์
+                    </button>
+                </div>
+                <p style="font-size:0.7rem; opacity:0.5; margin-top:20px; text-align: center;">Powered by Zenith Oracle</p>
+            </div>
+        </section>
+
+        <div id="share-card-layout" class="share-card-layout">
+            <div class="share-bg-decor"></div>
+            
+            <div class="share-logo">
+                <i data-lucide="sparkles" size="30"></i>
+                <span>ZENITH ORACLE</span>
+            </div>
+            <h2 id="share-title" class="share-title">คำทำนายของคุณ...</h2>
+            
+            <div id="share-traits" class="share-traits-row"></div>
+            
+            <div id="share-deep-traits" class="share-deep-traits-box"></div>
+            
+            <div id="share-scores"></div>
+
+            <div id="share-question-box" class="share-question-box"></div>
+
+            <div id="share-cards-container" class="share-cards-row"></div>
+            
+            <div class="share-oracle-box">
+                <div class="share-oracle-title"><i data-lucide="feather" size="18"></i> ไพ่ออราเคิล (Oracle Blessing)</div>
+                <div id="share-oracle" class="share-oracle-text"></div>
+            </div>
+            
+            <div class="share-footer">
+                <p>เช็คดวงชะตาของคุณได้ที่ <strong>Zenith Oracle</strong></p>
+            </div>
+        </div>
+        </div>
+
+    <script src="script.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
