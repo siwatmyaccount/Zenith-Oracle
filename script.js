@@ -1724,9 +1724,10 @@ function createMagicDust(e) {
 
     document.body.appendChild(particle);
 
-    setTimeout(() => {
-        particle.remove();
-    }, 1000);
+    // ✅ [แก้ไข #10] ใช้ animationend แทน setTimeout กันหลุด memory
+    particle.addEventListener('animationend', () => particle.remove(), { once: true });
+    // fallback กรณี animation ไม่ทำงาน (เช่น prefers-reduced-motion)
+    setTimeout(() => { if (particle.parentNode) particle.remove(); }, 1200);
 }
 
 window.addEventListener('mousemove', createMagicDust, { passive: true }); // เพิ่ม passive เพื่อลดภาระ Scroll
@@ -1832,6 +1833,11 @@ async function preloadShareImage() {
     shareLayout.style.left = '-9999px';
     shareLayout.style.top = '-9999px';
     shareLayout.style.width = '800px'; // ล็อคความกว้างให้รูปแชร์ออกมาสวยเป๊ะ
+
+    // ✅ [แก้ไข #6] เรียก lucide หลัง inject content เสร็จและ layout แสดงอยู่
+    if (window.lucide) lucide.createIcons();
+    // รอ 1 frame ให้ browser render icon ก่อนที่ html2canvas จะถ่ายรูป
+    await new Promise(r => requestAnimationFrame(r));
 
     try {
         // 3. ใช้ html2canvas ถ่ายรูปส่วนนั้น

@@ -9,7 +9,7 @@ export default {
 
         // อนุญาต CORS จาก GitHub Pages ของคุณ
         // ✏️ เปลี่ยน your-username และ your-repo ให้ตรงกับของคุณ
-        const ALLOWED_ORIGIN = " https://siwatmyaccount.github.io/Zenith-Oracle";
+        const ALLOWED_ORIGIN = "https://siwatmyaccount.github.io";
 
         const origin = request.headers.get("Origin") || "";
         const corsHeaders = {

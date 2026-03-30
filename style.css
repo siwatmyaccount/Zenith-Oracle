@@ -157,9 +157,20 @@ input, select { width: 100%; padding: 15px; background: rgba(0,0,0,0.4); border:
     width: 100%; 
     margin-top: 20px; 
 }
-.btn-primary { background: var(--gold); color: #000; border: none; padding: 15px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
-.btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 15px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
+.btn-primary { background: var(--gold); color: #000; border: none; padding: 15px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;}
+.btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 15px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;}
 .btn-outline:hover { background: rgba(212,175,55,0.1); }
+
+/* ✅ [แก้ไข #5] จอแคบมาก (<360px) เปลี่ยนเป็น 1 คอลัมน์ ปุ่มไม่ล้น */
+@media (max-width: 360px) {
+    .final-actions {
+        grid-template-columns: 1fr;
+    }
+    .btn-primary, .btn-outline {
+        font-size: 0.85rem;
+        padding: 13px;
+    }
+}
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -1182,13 +1193,17 @@ body.theme-rose {
     50% { top: -35px; }
 }
 
-/* 🌟 อัปเกรด: ปิดกรอบสีฟ้า (Tap Highlight & Outline) เวลากดไพ่บนมือถือ */
+/* ✅ [แก้ไข #8] ปิดเฉพาะ tap highlight บนมือถือ
+   ไม่ลบ outline ทั้งหมด เพื่อรักษา accessibility ของ keyboard/screen reader */
 * {
     -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
 }
 
-button:focus, select:focus, input:focus, .card-mini:focus {
+/* ซ่อน outline เฉพาะตอนคลิกด้วยเมาส์/นิ้ว (focus-visible = keyboard เท่านั้น) */
+button:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+.card-mini:focus:not(:focus-visible) {
     outline: none !important;
 }
 

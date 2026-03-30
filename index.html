@@ -6,10 +6,26 @@
     <title>ZENITH ORACLE พยากรณ์ชะตานำพาชีวิต</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z'/><path d='M20 3v4'/><path d='M22 5h-4'/><path d='M4 17v2'/><path d='M5 18H3'/></svg>">
 
+    <!-- ✅ [แก้ไข #11] Open Graph meta tags สำหรับแชร์ LINE/Facebook/Twitter -->
+    <meta property="og:title" content="ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต">
+    <meta property="og:description" content="เปิดไพ่ทาโรต์ดูดวงเรื่องความรัก การเงิน การงาน และภาพรวมชีวิต พร้อม AI วิเคราะห์เฉพาะคุณ">
+    <meta property="og:image" content="https://siwatmyaccount.github.io/Zenith-Oracle/oracle.jpg">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต">
+    <meta name="twitter:image" content="https://siwatmyaccount.github.io/Zenith-Oracle/oracle.jpg">
     <link rel="stylesheet" href="style.css">
+
+    <!-- ✅ [แก้ไข #11] Open Graph tags สำหรับ preview เวลาแชร์ใน LINE / Facebook -->
+    <meta property="og:title" content="ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต">
+    <meta property="og:description" content="เปิดไพ่ทาโรต์ ดูดวงชะตา ความรัก การเงิน การงาน โดย Zenith Oracle">
+    <meta property="og:image" content="https://siwatmyaccount.github.io/Zenith-Oracle/oracle.jpg">
+    <meta property="og:url" content="https://siwatmyaccount.github.io/Zenith-Oracle/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Anuphan:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -83,7 +99,7 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label><i data-lucide="milestone" size="16"></i> วัน/เดือน/ปีเกิด</label>
+                    <label><i data-lucide="milestone" size="16"></i> วัน/เดือน/ปีเกิด <span style="font-size:0.75rem; opacity:0.6;">(พ.ศ.)</span></label>
                     <div class="dob-group">
                         <select id="dob-day"><option value="" disabled selected>วัน</option></select>
                         <select id="dob-month"><option value="" disabled selected>เดือน</option></select>
