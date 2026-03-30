@@ -157,6 +157,16 @@ input, select { width: 100%; padding: 15px; background: rgba(0,0,0,0.4); border:
     width: 100%; 
     margin-top: 20px; 
 }
+
+@media (max-width: 360px) {
+    .final-actions {
+        grid-template-columns: 1fr;
+    }
+    .btn-primary, .btn-outline {
+        font-size: 0.85rem;
+        padding: 12px;
+    }
+}
 .btn-primary { background: var(--gold); color: #000; border: none; padding: 15px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;}
 .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 15px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;}
 .btn-outline:hover { background: rgba(212,175,55,0.1); }

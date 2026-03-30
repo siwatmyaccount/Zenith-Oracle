@@ -124,6 +124,12 @@ function clearSessionState() {
     sessionStorage.removeItem('zenith_session');
 }
 
+// 👇 ก๊อปปี้โค้ด 4 บรรทัดนี้ ไปวางต่อท้ายเลยครับ 👇
+function resetAndReload() {
+    clearSessionState();
+    location.reload();
+}
+
 // ==========================================
 // 🌟 1. ระบบกู้คืนเซสชัน (แก้ไขให้รองรับช่องว่าง)
 // ==========================================
