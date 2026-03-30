@@ -1,0 +1,16 @@
+# ============================================================
+# netlify.toml — ไฟล์ตั้งค่า Netlify
+# วางไว้ที่ root ของโปรเจกต์ (ระดับเดียวกับ index.html)
+# ============================================================
+
+[build]
+  # บอก Netlify ว่าไฟล์เว็บอยู่ที่ root (ไม่มี build step)
+  publish = "."
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # ป้องกัน XSS และ Clickjacking เบื้องต้น
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
