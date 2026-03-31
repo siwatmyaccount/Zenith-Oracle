@@ -125,7 +125,8 @@ function clearSessionState() {
 }
 
 // 👇 ก๊อปปี้โค้ด 4 บรรทัดนี้ ไปวางต่อท้ายเลยครับ 👇
-function resetAndReload() {
+function _resetAndReloadOriginal() {
+    // ✅ ถูกแทนที่ด้วย resetAndReload() ที่มี Goodbye Modal ด้านล่างสุดแล้ว
     clearSessionState();
     location.reload();
 }
@@ -841,10 +842,13 @@ function startReading() {
     selectedCards = new Array(user.spread).fill(null); 
     
     switchScene('step-1', 'step-2');
-    generateDeck();
-    updateSlotsDisplay(); 
-    saveSessionState();
-    if(window.lucide) lucide.createIcons();
+    // 🌟 เรียก animation สับไพ่ก่อน แล้วค่อย generateDeck จริงๆ หลัง animation จบ
+    runShuffleAnimation(() => {
+        generateDeck();
+        updateSlotsDisplay();
+        saveSessionState();
+        if(window.lucide) lucide.createIcons();
+    });
 }
 
 // ==========================================
@@ -1877,3 +1881,241 @@ async function preloadShareImage() {
 document.getElementById('user-spread').addEventListener('change', checkDailyCooldown);
 // เช็คตอนโหลดเว็บเสร็จ
 window.addEventListener('load', checkDailyCooldown);
+// ==========================================
+// 🌟 ระบบ Goodbye Modal — แสดงก่อนออกจากเว็บทุกวิธี
+// ==========================================
+
+// สร้าง overlay ใส่ใน DOM ทันทีที่โหลดหน้า
+(function createGoodbyeModal() {
+    const overlay = document.createElement('div');
+    overlay.id = 'goodbye-overlay';
+    overlay.className = 'goodbye-overlay';
+    overlay.innerHTML = `
+        <div class="goodbye-box">
+            <span class="goodbye-icon">✨</span>
+            <p class="goodbye-text">ขอให้คุณโชคดี<br>และใช้ชีวิตอย่างมีสตินะครับ</p>
+            <p class="goodbye-sub">กำลังออกจากเว็บ...</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+})();
+
+function showGoodbyeModal() {
+    const overlay = document.getElementById('goodbye-overlay');
+    if (overlay) overlay.classList.add('show');
+}
+
+// 1) กดปุ่ม Back / Forward ในมือถือและคอม (popstate)
+window.addEventListener('popstate', showGoodbyeModal);
+
+// 2) ปิดแท็บ / ปิดหน้าต่าง / รีเฟรช (beforeunload)
+window.addEventListener('beforeunload', (e) => {
+    showGoodbyeModal();
+    // บางเบราว์เซอร์ต้องการ returnValue เพื่อให้ event ทำงาน
+    e.preventDefault();
+    e.returnValue = '';
+});
+
+// 3) กดปุ่ม "ทำนายใหม่อีกครั้ง" — แสดง modal ก่อน reload
+function resetAndReload() {
+    showGoodbyeModal();
+    clearSessionState();
+    setTimeout(() => {
+        location.reload();
+    }, 1800); // รอให้อ่านข้อความได้ก่อน 1.8 วินาที
+}
+// ==========================================
+// 🌟 ระบบ Animation สับไพ่สวยๆ (Riffle Shuffle Style)
+// ==========================================
+function runShuffleAnimation(onComplete) {
+    const deck = document.getElementById('card-deck');
+    deck.innerHTML = '';
+
+    // -------- Helper --------
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+
+    async function animate() {
+        // ===== STAGE SETUP =====
+        const stage = document.createElement('div');
+        stage.className = 'shuffle-stage';
+
+        const status = document.createElement('div');
+        status.className = 'shuffle-status';
+        stage.appendChild(status);
+        deck.appendChild(stage);
+
+        const centerX = 0; // relative to stage center
+        const N = 16; // จำนวนไพ่ในกอง
+
+        function setStatus(text) {
+            status.style.opacity = '0';
+            return wait(250).then(() => {
+                status.textContent = text;
+                status.style.opacity = '1';
+            });
+        }
+
+        // สร้างไพ่ในกอง
+        function makeCard(x, y, rot, zIdx, scale) {
+            const c = document.createElement('div');
+            c.className = 'shuffle-card';
+            Object.assign(c.style, {
+                left: `calc(50% - 25px + ${x}px)`,
+                bottom: `${y}px`,
+                transform: `rotate(${rot}deg) scale(${scale||1})`,
+                zIndex: zIdx,
+                transition: 'none',
+                opacity: '1'
+            });
+            stage.appendChild(c);
+            return c;
+        }
+
+        function setCard(c, x, y, rot, dur, easing, scale) {
+            c.style.transition = dur
+                ? `left ${dur}ms ${easing||'ease'}, bottom ${dur}ms ${easing||'ease'}, transform ${dur}ms ${easing||'ease'}, opacity ${dur}ms ease`
+                : 'none';
+            c.style.left      = `calc(50% - 25px + ${x}px)`;
+            c.style.bottom    = `${y}px`;
+            c.style.transform = `rotate(${rot}deg) scale(${scale||1})`;
+        }
+
+        // ===== 1. วางกองไพ่ลงกลางจอ (stack เฉียงนิดหน่อย) =====
+        await setStatus('วางไพ่');
+        const stackCards = [];
+        for (let i = 0; i < N; i++) {
+            const offset = i * 0.4;
+            const c = makeCard(offset - (N*0.4/2), 18 + i*0.5, offset*0.5 - (N*0.4*0.5/2), i, 1);
+            c.style.opacity = '0';
+            c.style.transform = `rotate(0deg) translateY(30px)`;
+            stackCards.push(c);
+        }
+        // drop in staggered
+        for (let i = 0; i < N; i++) {
+            await wait(18);
+            stackCards[i].style.transition = 'transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.25s ease';
+            const offset = i * 0.4 - (N*0.4/2);
+            stackCards[i].style.opacity = '1';
+            stackCards[i].style.transform = `rotate(${offset * 0.5}deg)`;
+        }
+        await wait(450);
+
+        // ===== 2. RIFFLE SHUFFLE — ไพ่เรียงเฉียงสวยๆ =====
+        await setStatus('สับไพ่');
+        await wait(100);
+
+        async function riffleOnce() {
+            // แยกกองออก 2 ซีก (ซ้าย/ขวา) แบบ riffle
+            const half = Math.floor(N / 2);
+            const leftCards  = stackCards.slice(0, half);
+            const rightCards = stackCards.slice(half);
+
+            // --- กางซ้าย: เรียงเฉียงแบบ fan-up ซ้าย ---
+            for (let i = 0; i < leftCards.length; i++) {
+                const t = i / (leftCards.length - 1);
+                const x = -55 + t * 20;
+                const y = 18 + t * 35;
+                const rot = -22 + t * 12;
+                setCard(leftCards[i], x, y, rot, 280, 'cubic-bezier(0.4,0,0.2,1)');
+                leftCards[i].style.zIndex = i;
+                await wait(18);
+            }
+            // --- กางขวา: เรียงเฉียงแบบ fan-up ขวา ---
+            for (let i = 0; i < rightCards.length; i++) {
+                const t = i / (rightCards.length - 1);
+                const x = 25 + t * 35;
+                const y = 18 + (1-t) * 35;
+                const rot = 12 - t * 22;
+                setCard(rightCards[i], x, y, rot, half + i, 280, 'cubic-bezier(0.4,0,0.2,1)');
+                await wait(18);
+            }
+            await wait(380);
+
+            // --- สอดไพ่กลับเข้าหากัน (interleave) ---
+            const combined = [];
+            const maxLen = Math.max(leftCards.length, rightCards.length);
+            for (let i = 0; i < maxLen; i++) {
+                if (i < rightCards.length) combined.push(rightCards[i]);
+                if (i < leftCards.length)  combined.push(leftCards[i]);
+            }
+            for (let i = 0; i < combined.length; i++) {
+                const offset = i * 0.35 - (N*0.35/2);
+                const targetZ = i;
+                combined[i].style.zIndex = targetZ;
+                setCard(combined[i], offset, 18 + i * 0.4, offset * 0.45, 320, 'cubic-bezier(0.175,0.885,0.32,1.275)');
+                await wait(22);
+            }
+            // sync stackCards order to combined
+            combined.forEach((c, i) => { stackCards[i] = c; });
+            await wait(420);
+        }
+
+        await riffleOnce();
+        await riffleOnce();
+        await wait(150);
+
+        // ===== 3. ตัดไพ่ =====
+        await setStatus('ตัดไพ่');
+        await wait(100);
+
+        const cutIdx = Math.floor(N * 0.45);
+        const topHalf    = stackCards.slice(cutIdx);   // กองบน
+        const bottomHalf = stackCards.slice(0, cutIdx); // กองล่าง
+
+        // ยก top half ขึ้น-ซ้าย
+        for (let i = 0; i < topHalf.length; i++) {
+            const offset = i * 0.35;
+            setCard(topHalf[i], -52 + offset, 70 + i*0.4, -2 + offset*0.3, 380, 'cubic-bezier(0.4,0,0.2,1)');
+            topHalf[i].style.zIndex = 200 + i;
+        }
+        await wait(420);
+
+        // bottom half เลื่อนขวานิด
+        for (let i = 0; i < bottomHalf.length; i++) {
+            const offset = i * 0.35;
+            setCard(bottomHalf[i], 18 + offset, 18 + i*0.4, 1.5 + offset*0.2, 300, 'ease');
+            bottomHalf[i].style.zIndex = i;
+        }
+        await wait(350);
+
+        // วาง top half ทับ bottom half
+        for (let i = 0; i < topHalf.length; i++) {
+            const base = bottomHalf.length;
+            const offset = (base + i) * 0.35 - (N*0.35/2);
+            setCard(topHalf[i], offset, 18 + (base+i)*0.4, offset*0.45, 320, 'cubic-bezier(0.175,0.885,0.32,1.275)');
+            topHalf[i].style.zIndex = base + i;
+            await wait(20);
+        }
+        await wait(420);
+
+        // ===== 4. เรียงไพ่เป็นพัด =====
+        await setStatus('เรียงไพ่');
+        await wait(150);
+
+        // Fade out stage แล้วเรียก generateDeck จริง
+        stage.style.transition = 'opacity 0.4s ease';
+        stage.style.opacity = '0';
+        status.style.opacity = '0';
+        await wait(450);
+
+        deck.innerHTML = '';
+        onComplete && onComplete();
+
+        // ไพ่ค่อยๆ กางออกเป็นพัด
+        await wait(30);
+        const realCards = deck.querySelectorAll('.card-mini');
+        realCards.forEach((card, i) => {
+            const finalAngle = parseFloat(card.dataset.angle) || 0;
+            card.style.transition = 'none';
+            card.style.opacity = '0';
+            card.style.transform = `rotate(0deg)`;
+            setTimeout(() => {
+                card.style.transition = `transform 0.55s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.35s ease`;
+                card.style.transform  = `rotate(${finalAngle}deg)`;
+                card.style.opacity    = '1';
+            }, 20 + i * 9);
+        });
+    }
+
+    animate().catch(console.error);
+}
