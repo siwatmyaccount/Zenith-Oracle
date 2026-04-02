@@ -1233,89 +1233,66 @@ input:focus:not(:focus-visible),
     font-weight: bold;
     font-size: 0.8rem;
 }
+/* =========================================
+   🌟 Step Indicator — fixed บนสุดเสมอ
+========================================= */
+#step-indicator {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    pointer-events: none;
+}
+.step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(212,175,55,0.25);
+    border: 1px solid rgba(212,175,55,0.4);
+    transition: all 0.4s ease;
+}
+.step-dot.active {
+    width: 24px;
+    border-radius: 4px;
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 8px rgba(212,175,55,0.5);
+}
+.step-dot.done {
+    background: rgba(212,175,55,0.5);
+    border-color: var(--gold);
+}
+
 /* ── Shuffle Stage ── */
-.shuffle-stage {
-    position: relative; width: 100%; height: 160px;
-    display: flex; justify-content: center; align-items: flex-end; overflow: visible;
-}
-.shuffle-card {
-    position: absolute; width: 50px; height: 78px;
-    background: linear-gradient(135deg,#1b1229 25%,transparent 25%) -10px 0,
-                linear-gradient(225deg,#1b1229 25%,transparent 25%) -10px 0,
-                linear-gradient(315deg,#1b1229 25%,transparent 25%),
-                linear-gradient(45deg, #1b1229 25%,transparent 25%);
-    background-size: 18px 18px; background-color: #0a0a0f;
-    border: 1px solid rgba(212,175,55,0.55); border-radius: 5px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.7); will-change: transform,opacity;
-}
-.shuffle-card::before {
-    content:"✦"; position:absolute; top:50%; left:50%;
-    transform:translate(-50%,-50%); color:rgba(212,175,55,0.35); font-size:1.1rem; pointer-events:none;
-}
-.shuffle-status {
-    position:absolute; bottom:-32px; left:50%; transform:translateX(-50%);
-    color:var(--gold-bright); font-family:'Anuphan',sans-serif; font-size:0.82rem;
-    letter-spacing:2px; white-space:nowrap; opacity:0; transition:opacity 0.35s ease;
-    text-shadow:0 0 12px rgba(212,175,55,0.6);
-}
+.shuffle-stage { position:relative; width:100%; height:160px; display:flex; justify-content:center; align-items:flex-end; overflow:visible; }
+.shuffle-card { position:absolute; width:50px; height:78px; background:linear-gradient(135deg,#1b1229 25%,transparent 25%) -10px 0,linear-gradient(225deg,#1b1229 25%,transparent 25%) -10px 0,linear-gradient(315deg,#1b1229 25%,transparent 25%),linear-gradient(45deg,#1b1229 25%,transparent 25%); background-size:18px 18px; background-color:#0a0a0f; border:1px solid rgba(212,175,55,0.55); border-radius:5px; box-shadow:0 3px 8px rgba(0,0,0,0.7); will-change:transform,opacity; -webkit-backface-visibility:hidden; }
+.shuffle-card::before { content:"✦"; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:rgba(212,175,55,0.35); font-size:1.1rem; pointer-events:none; }
+.shuffle-status { position:absolute; bottom:-32px; left:50%; transform:translateX(-50%); color:var(--gold-bright); font-family:'Anuphan',sans-serif; font-size:0.82rem; letter-spacing:2px; white-space:nowrap; opacity:0; transition:opacity 0.35s ease; text-shadow:0 0 12px rgba(212,175,55,0.6); }
 
 /* ── Skeleton Loader ── */
 .skeleton-wrap { display:flex; flex-direction:column; gap:10px; width:100%; padding:4px 0; }
-.skeleton-line {
-    height:14px; border-radius:6px;
-    background: linear-gradient(90deg, rgba(160,120,255,0.08) 0%, rgba(160,120,255,0.22) 40%, rgba(160,120,255,0.08) 100%);
-    background-size:200% 100%; animation:skeletonShimmer 1.6s ease-in-out infinite;
-}
+.skeleton-line { height:14px; border-radius:6px; background:linear-gradient(90deg,rgba(160,120,255,0.08) 0%,rgba(160,120,255,0.22) 40%,rgba(160,120,255,0.08) 100%); background-size:200% 100%; animation:skeletonShimmer 1.6s ease-in-out infinite; }
 @keyframes skeletonShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
 /* ── Card Flip 3D ── */
 .slot-flip-wrap { perspective:600px; width:85px; height:135px; position:relative; }
-.slot-flip-inner {
-    width:100%; height:100%; position:relative;
-    transform-style:preserve-3d; transition:transform 0.65s cubic-bezier(0.4,0.2,0.2,1);
-}
+.slot-flip-inner { width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform 0.65s cubic-bezier(0.4,0.2,0.2,1); }
 .slot-flip-inner.flipped { transform:rotateY(180deg); }
-.slot-flip-front, .slot-flip-back {
-    position:absolute; inset:0; border-radius:10px;
-    backface-visibility:hidden; -webkit-backface-visibility:hidden;
-    display:flex; align-items:center; justify-content:center;
-}
-.slot-flip-front {
-    background: linear-gradient(135deg,#1b1229 25%,transparent 25%) -10px 0,
-                linear-gradient(225deg,#1b1229 25%,transparent 25%) -10px 0,
-                linear-gradient(315deg,#1b1229 25%,transparent 25%),
-                linear-gradient(45deg, #1b1229 25%,transparent 25%);
-    background-size:18px 18px; background-color:#0a0a0f;
-    border:2px solid rgba(212,175,55,0.5); font-size:1.8rem;
-}
-.slot-flip-back {
-    background:rgba(20,10,30,0.95); border:2px solid var(--gold);
-    transform:rotateY(180deg); flex-direction:column; gap:6px; padding:6px;
-    box-shadow:0 0 20px rgba(212,175,55,0.3);
-}
+.slot-flip-front,.slot-flip-back { position:absolute; inset:0; border-radius:10px; backface-visibility:hidden; -webkit-backface-visibility:hidden; display:flex; align-items:center; justify-content:center; }
+.slot-flip-front { background:linear-gradient(135deg,#1b1229 25%,transparent 25%) -10px 0,linear-gradient(225deg,#1b1229 25%,transparent 25%) -10px 0,linear-gradient(315deg,#1b1229 25%,transparent 25%),linear-gradient(45deg,#1b1229 25%,transparent 25%); background-size:18px 18px; background-color:#0a0a0f; border:2px solid rgba(212,175,55,0.5); font-size:1.8rem; }
+.slot-flip-back { background:rgba(20,10,30,0.95); border:2px solid var(--gold); transform:rotateY(180deg); flex-direction:column; gap:6px; padding:6px; box-shadow:0 0 20px rgba(212,175,55,0.3); }
 .slot-flip-back .card-name-flip { font-size:0.62rem; color:var(--gold-bright); text-align:center; font-weight:600; letter-spacing:0.5px; line-height:1.3; }
-.slot-flip-back .card-rev-flip  { font-size:0.58rem; color:rgba(255,255,255,0.5); }
-
-/* ── Step Indicator ── */
-.step-indicator { display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:24px; width:100%; }
-.step-dot { width:8px; height:8px; border-radius:50%; background:rgba(212,175,55,0.25); border:1px solid rgba(212,175,55,0.4); transition:all 0.4s ease; }
-.step-dot.active { width:24px; border-radius:4px; background:var(--gold); border-color:var(--gold); box-shadow:0 0 8px rgba(212,175,55,0.5); }
-.step-dot.done   { background:rgba(212,175,55,0.5); border-color:var(--gold); }
+.slot-flip-back .card-rev-flip { font-size:0.58rem; color:rgba(255,255,255,0.5); }
 
 /* ── Goodbye Modal ── */
-.goodbye-overlay {
-    position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center;
-    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-    background:rgba(5,1,10,0.75); opacity:0; pointer-events:none; transition:opacity 0.4s ease;
-}
+.goodbye-overlay { position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); background:rgba(5,1,10,0.75); opacity:0; pointer-events:none; transition:opacity 0.4s ease; }
 .goodbye-overlay.show { opacity:1; pointer-events:all; }
-.goodbye-box {
-    text-align:center; padding:40px 35px; border-radius:24px;
-    border:1px solid rgba(212,175,55,0.4); background:rgba(15,8,28,0.95);
-    box-shadow:0 0 40px rgba(212,175,55,0.15); max-width:340px; width:90%;
-    animation:goodbyePop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
-}
+.goodbye-box { text-align:center; padding:40px 35px; border-radius:24px; border:1px solid rgba(212,175,55,0.4); background:rgba(15,8,28,0.95); box-shadow:0 0 40px rgba(212,175,55,0.15); max-width:340px; width:90%; animation:goodbyePop 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
 @keyframes goodbyePop { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
-.goodbye-icon  { font-size:2.8rem; margin-bottom:16px; display:block; }
-.goodbye-text  { font-family:'Anuphan',sans-serif; font-size:1.15rem; color:var(--gold-bright); line-height:1.7; margin-bottom:24px; }
-.goodbye-sub   { font-size:0.8rem; color:rgba(255,255,255,0.35); }
+.goodbye-icon { font-size:2.8rem; margin-bottom:16px; display:block; }
+.goodbye-text { font-family:'Anuphan',sans-serif; font-size:1.15rem; color:var(--gold-bright); line-height:1.7; margin-bottom:24px; }
+.goodbye-sub { font-size:0.8rem; color:rgba(255,255,255,0.35); }

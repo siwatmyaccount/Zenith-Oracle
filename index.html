@@ -3,26 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZENITH ORACLE พยากรณ์ชะตานำพาชีวิต</title>
+    <title>ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต</title>
+
+    <!-- ══ Favicon ══ -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z'/><path d='M20 3v4'/><path d='M22 5h-4'/><path d='M4 17v2'/><path d='M5 18H3'/></svg>">
 
-    <!-- ✅ [แก้ไข #11] Open Graph meta tags สำหรับแชร์ LINE/Facebook/Twitter -->
-    <meta property="og:title" content="ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต">
-    <meta property="og:description" content="เปิดไพ่ทาโรต์ดูดวงเรื่องความรัก การเงิน การงาน และภาพรวมชีวิต พร้อม AI วิเคราะห์เฉพาะคุณ">
-    <meta property="og:image" content="https://siwatmyaccount.github.io/Zenith-Oracle/oracle.jpg">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต">
-    <meta name="twitter:image" content="https://siwatmyaccount.github.io/Zenith-Oracle/oracle.jpg">
-    <link rel="stylesheet" href="style.css">
+    <!-- ══ SEO ══ -->
+    <meta name="description" content="เปิดไพ่ทาโรต์ดูดวงเรื่องความรัก การเงิน การงาน และภาพรวมชีวิต พร้อม AI วิเคราะห์เฉพาะคุณ โดย Zenith Oracle">
+    <meta name="keywords" content="ดูดวง,ไพ่ทาโรต์,tarot,zenith oracle,ดวงความรัก,ดวงการเงิน,ดวงการงาน">
+    <meta name="author" content="Zenith Oracle">
+    <meta name="robots" content="index, follow">
 
-    <!-- ✅ [แก้ไข #11] Open Graph tags สำหรับ preview เวลาแชร์ใน LINE / Facebook -->
-    <meta property="og:title" content="ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต">
-    <meta property="og:description" content="เปิดไพ่ทาโรต์ ดูดวงชะตา ความรัก การเงิน การงาน โดย Zenith Oracle">
-    <meta property="og:image" content="https://siwatmyaccount.github.io/Zenith-Oracle/oracle.jpg">
-    <meta property="og:url" content="https://siwatmyaccount.github.io/Zenith-Oracle/">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
+    <!-- ══ Open Graph (Facebook / LINE) ══ -->
+    <meta property="og:type"        content="website">
+    <meta property="og:url"         content="https://siwatmyaccount.github.io/Zenith-Oracle/">
+    <meta property="og:title"       content="ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต">
+    <meta property="og:description" content="เปิดไพ่ทาโรต์ดูดวงเรื่องความรัก การเงิน การงาน และภาพรวมชีวิต พร้อม AI วิเคราะห์เฉพาะคุณ">
+    <meta property="og:image"       content="https://siwatmyaccount.github.io/Zenith-Oracle/oracle.jpg">
+    <meta property="og:image:width"  content="640">
+    <meta property="og:image:height" content="800">
+    <meta property="og:locale"      content="th_TH">
+    <meta property="og:site_name"   content="Zenith Oracle">
+
+    <!-- ══ Twitter Card ══ -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="ZENITH ORACLE — พยากรณ์ชะตานำพาชีวิต">
+    <meta name="twitter:description" content="เปิดไพ่ทาโรต์ดูดวงเรื่องความรัก การเงิน การงาน พร้อม AI วิเคราะห์">
+    <meta name="twitter:image"       content="https://siwatmyaccount.github.io/Zenith-Oracle/oracle.jpg">
+
+    <!-- ══ Styles & Fonts ══ -->
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Anuphan:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -46,9 +56,9 @@
     <div class="stars-container"></div>
     <div class="magic-dust"></div>
     
+    <div class="step-indicator" id="step-indicator"><div class="step-dot" id="dot-1"></div><div class="step-dot" id="dot-2"></div><div class="step-dot" id="dot-3"></div></div>
     <div class="container">
         <section id="step-1" class="scene active">
-            <div class="step-indicator"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div>
             <div class="logo-wrapper">
                 <div class="main-logo">
                     <i data-lucide="sparkles" class="logo-icon"></i>
@@ -115,7 +125,6 @@
         </section>
 
         <section id="step-2" class="scene">
-            <div class="step-indicator"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
             <div class="reading-header">
                 <h2 class="gold-text" id="deck-title">เลือกไพ่พยากรณ์</h2>
                 <div class="progress-info">
@@ -152,7 +161,6 @@
         </section>
 
         <section id="step-3" class="scene">
-            <div class="step-indicator"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div></div>
             <div class="result-wrapper">
                 <div id="personal-traits" class="personal-traits"></div>
                 <div id="soul-card-highlight" class="soul-highlight-box"></div>

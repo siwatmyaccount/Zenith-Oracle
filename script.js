@@ -31,14 +31,7 @@ async function generateAIPrediction() {
     // ✅ [แก้ไข #1] ไม่ต้องเช็ค key ใน frontend แล้ว proxy จัดการให้
     // ถ้า key ไม่ได้ตั้งค่าใน Netlify, proxy จะ return error กลับมาเอง
 
-    aiBox.innerHTML = `
-        <div class="skeleton-wrap">
-            <div class="skeleton-line" style="width:92%"></div>
-            <div class="skeleton-line" style="width:78%"></div>
-            <div class="skeleton-line" style="width:85%"></div>
-            <div class="skeleton-line" style="width:60%"></div>
-        </div>
-    `;
+    aiBox.innerHTML = `<div class="skeleton-wrap"><div class="skeleton-line" style="width:92%"></div><div class="skeleton-line" style="width:78%"></div><div class="skeleton-line" style="width:85%"></div><div class="skeleton-line" style="width:60%"></div></div>`;
 
     const zodiacInfo = getZodiac(user.dob);
     const cardList = selectedCards.map((c, i) => `${i+1}. ${c.name} (${c.isReversed ? 'หัวกลับ' : 'ปกติ'})`).join('\n');
@@ -1166,20 +1159,11 @@ function showResults(fromScene = 'step-2') {
         `;
     }
 
-    // ✅ #4 คะแนนแยกแต่ละด้านจากไพ่จริง
-    function scoreForTopic(topic) {
-        return Math.floor(
-            selectedCards.reduce((sum, c) => {
-                const base = c.isReversed ? c.score - 10 : c.score;
-                const hasGoodTopic = c[topic] && (c[topic].present || '').length > 20;
-                return sum + base + (hasGoodTopic ? 8 : -5);
-            }, 0) / user.spread
-        );
-    }
-    const avg = Math.floor(selectedCards.reduce((a,b) => a + (b.isReversed ? b.score-10 : b.score), 0) / user.spread);
-    updateScore('score-love',  Math.min(100, Math.max(10, scoreForTopic('love'))));
-    updateScore('score-money', Math.min(100, Math.max(10, scoreForTopic('money'))));
-    updateScore('score-work',  Math.min(100, Math.max(10, scoreForTopic('work'))));
+    function scoreForTopic(t){return Math.min(100,Math.max(10,Math.floor(selectedCards.reduce((s,c)=>s+(c.isReversed?c.score-10:c.score)+((c[t]&&(c[t].present||'').length>20)?8:-5),0)/user.spread)));}
+    const avg=Math.floor(selectedCards.reduce((a,b)=>a+(b.isReversed?b.score-10:b.score),0)/user.spread);
+    updateScore('score-love',scoreForTopic('love'));
+    updateScore('score-money',scoreForTopic('money'));
+    updateScore('score-work',scoreForTopic('work'));
 
     // ==========================================
     // 🌟 เริ่มส่วนแสดงกล่องข้อความต่างๆ (เรียงลำดับใหม่ให้ถูกต้อง)
@@ -1411,8 +1395,32 @@ function switchScene(from, to) {
     setTimeout(() => {
         f.style.display = 'none';
         t.style.display = 'flex';
-        setTimeout(() => t.classList.add('active'), 50);
+        setTimeout(() => {
+            t.classList.add('active');
+            updateStepIndicator(to); // ✅ อัปเดต dot ตาม step
+        }, 50);
     }, 400);
+}
+
+// ✅ อัปเดต step indicator dot ตาม scene ที่ active
+function updateStepIndicator(activeScene) {
+    const d1 = document.getElementById('dot-1');
+    const d2 = document.getElementById('dot-2');
+    const d3 = document.getElementById('dot-3');
+    if (!d1 || !d2 || !d3) return;
+    d1.className = 'step-dot';
+    d2.className = 'step-dot';
+    d3.className = 'step-dot';
+    if (activeScene === 'step-1') {
+        d1.classList.add('active');
+    } else if (activeScene === 'step-2') {
+        d1.classList.add('done');
+        d2.classList.add('active');
+    } else if (activeScene === 'step-3') {
+        d1.classList.add('done');
+        d2.classList.add('done');
+        d3.classList.add('active');
+    }
 }
 
 // 🌟 ฟังก์ชันเสริม: ปิดแอนิเมชันทั้งหมดก่อนแคปจอ (แก้บั๊กรูปหาย)
@@ -1901,7 +1909,6 @@ function runShuffleAnimation(onComplete) {
     const deck = document.getElementById('card-deck');
     deck.innerHTML = '';
     const wait = ms => new Promise(r => setTimeout(r, ms));
-
     async function animate() {
         const stage = document.createElement('div');
         stage.className = 'shuffle-stage';
@@ -1910,214 +1917,78 @@ function runShuffleAnimation(onComplete) {
         stage.appendChild(status);
         deck.appendChild(stage);
         const N = 16;
-
-        function setStatus(text) {
-            status.style.opacity = '0';
-            return wait(250).then(() => { status.textContent = text; status.style.opacity = '1'; });
+        function setStatus(text) { status.style.opacity='0'; return wait(250).then(()=>{status.textContent=text;status.style.opacity='1';}); }
+        function makeCard(x,y,rot,zIdx) {
+            const c=document.createElement('div'); c.className='shuffle-card';
+            Object.assign(c.style,{left:`calc(50% - 25px + ${x}px)`,bottom:`${y}px`,transform:`rotate(${rot}deg)`,zIndex:zIdx,transition:'none',opacity:'1'});
+            stage.appendChild(c); return c;
         }
-        function makeCard(x, y, rot, zIdx) {
-            const c = document.createElement('div');
-            c.className = 'shuffle-card';
-            Object.assign(c.style, {
-                left: `calc(50% - 25px + ${x}px)`, bottom: `${y}px`,
-                transform: `rotate(${rot}deg)`, zIndex: zIdx,
-                transition: 'none', opacity: '1'
-            });
-            stage.appendChild(c);
-            return c;
+        function setCard(c,x,y,rot,dur,ease) {
+            c.style.transition=dur?`left ${dur}ms ${ease||'ease'},bottom ${dur}ms ${ease||'ease'},transform ${dur}ms ${ease||'ease'}`:'none';
+            c.style.left=`calc(50% - 25px + ${x}px)`;c.style.bottom=`${y}px`;c.style.transform=`rotate(${rot}deg)`;
         }
-        function setCard(c, x, y, rot, dur, easing) {
-            c.style.transition = dur
-                ? `left ${dur}ms ${easing||'ease'}, bottom ${dur}ms ${easing||'ease'}, transform ${dur}ms ${easing||'ease'}, opacity ${dur}ms ease`
-                : 'none';
-            c.style.left      = `calc(50% - 25px + ${x}px)`;
-            c.style.bottom    = `${y}px`;
-            c.style.transform = `rotate(${rot}deg)`;
-        }
-
-        // 1. วางไพ่ลงมาทีละใบ
         await setStatus('วางไพ่');
-        const stackCards = [];
-        for (let i = 0; i < N; i++) {
-            const offset = i * 0.4 - (N*0.4/2);
-            const c = makeCard(offset, 18 + i*0.5, offset*0.5, i);
-            c.style.opacity = '0';
-            c.style.transform = `rotate(0deg) translateY(30px)`;
-            stackCards.push(c);
-        }
-        for (let i = 0; i < N; i++) {
-            await wait(18);
-            stackCards[i].style.transition = 'transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.25s ease';
-            const offset = i * 0.4 - (N*0.4/2);
-            stackCards[i].style.opacity = '1';
-            stackCards[i].style.transform = `rotate(${offset * 0.5}deg)`;
-        }
+        const stackCards=[];
+        for(let i=0;i<N;i++){const offset=i*0.4-(N*0.4/2);const c=makeCard(offset,18+i*0.5,offset*0.5,i);c.style.opacity='0';c.style.transform=`rotate(0deg) translateY(30px)`;stackCards.push(c);}
+        for(let i=0;i<N;i++){await wait(18);stackCards[i].style.transition='transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275),opacity 0.25s ease';const offset=i*0.4-(N*0.4/2);stackCards[i].style.opacity='1';stackCards[i].style.transform=`rotate(${offset*0.5}deg)`;}
         await wait(450);
-
-        // 2. Riffle Shuffle 2 รอบ
-        await setStatus('สับไพ่');
-        await wait(100);
-
-        async function riffleOnce() {
-            const half = Math.floor(N / 2);
-            const leftCards  = stackCards.slice(0, half);
-            const rightCards = stackCards.slice(half);
-            for (let i = 0; i < leftCards.length; i++) {
-                const t = i / (leftCards.length - 1);
-                setCard(leftCards[i], -55 + t*20, 18 + t*35, -22 + t*12, 280, 'cubic-bezier(0.4,0,0.2,1)');
-                leftCards[i].style.zIndex = i;
-                await wait(18);
-            }
-            for (let i = 0; i < rightCards.length; i++) {
-                const t = i / (rightCards.length - 1);
-                setCard(rightCards[i], 25 + t*35, 18 + (1-t)*35, 12 - t*22, 280, 'cubic-bezier(0.4,0,0.2,1)');
-                await wait(18);
-            }
+        await setStatus('สับไพ่'); await wait(100);
+        async function riffleOnce(){
+            const half=Math.floor(N/2);const lC=stackCards.slice(0,half);const rC=stackCards.slice(half);
+            for(let i=0;i<lC.length;i++){const t=i/(lC.length-1);setCard(lC[i],-55+t*20,18+t*35,-22+t*12,280,'cubic-bezier(0.4,0,0.2,1)');lC[i].style.zIndex=i;await wait(18);}
+            for(let i=0;i<rC.length;i++){const t=i/(rC.length-1);setCard(rC[i],25+t*35,18+(1-t)*35,12-t*22,280,'cubic-bezier(0.4,0,0.2,1)');await wait(18);}
             await wait(380);
-            const combined = [];
-            const maxLen = Math.max(leftCards.length, rightCards.length);
-            for (let i = 0; i < maxLen; i++) {
-                if (i < rightCards.length) combined.push(rightCards[i]);
-                if (i < leftCards.length)  combined.push(leftCards[i]);
-            }
-            for (let i = 0; i < combined.length; i++) {
-                const offset = i * 0.35 - (N*0.35/2);
-                combined[i].style.zIndex = i;
-                setCard(combined[i], offset, 18 + i*0.4, offset*0.45, 320, 'cubic-bezier(0.175,0.885,0.32,1.275)');
-                await wait(22);
-            }
-            combined.forEach((c, i) => { stackCards[i] = c; });
-            await wait(420);
+            const combined=[];const maxLen=Math.max(lC.length,rC.length);
+            for(let i=0;i<maxLen;i++){if(i<rC.length)combined.push(rC[i]);if(i<lC.length)combined.push(lC[i]);}
+            for(let i=0;i<combined.length;i++){const offset=i*0.35-(N*0.35/2);combined[i].style.zIndex=i;setCard(combined[i],offset,18+i*0.4,offset*0.45,320,'cubic-bezier(0.175,0.885,0.32,1.275)');await wait(22);}
+            combined.forEach((c,i)=>{stackCards[i]=c;}); await wait(420);
         }
-        await riffleOnce();
-        await riffleOnce();
-        await wait(150);
-
-        // 3. ตัดไพ่
-        await setStatus('ตัดไพ่');
-        await wait(100);
-        const cutIdx = Math.floor(N * 0.45);
-        const topHalf    = stackCards.slice(cutIdx);
-        const bottomHalf = stackCards.slice(0, cutIdx);
-        for (let i = 0; i < topHalf.length; i++) {
-            const offset = i * 0.35;
-            setCard(topHalf[i], -52 + offset, 70 + i*0.4, -2 + offset*0.3, 380, 'cubic-bezier(0.4,0,0.2,1)');
-            topHalf[i].style.zIndex = 200 + i;
-        }
+        await riffleOnce(); await riffleOnce(); await wait(150);
+        await setStatus('ตัดไพ่'); await wait(100);
+        const cutIdx=Math.floor(N*0.45);const topH=stackCards.slice(cutIdx);const botH=stackCards.slice(0,cutIdx);
+        for(let i=0;i<topH.length;i++){setCard(topH[i],-52+i*0.35,70+i*0.4,-2+i*0.35*0.3,380,'cubic-bezier(0.4,0,0.2,1)');topH[i].style.zIndex=200+i;}
         await wait(420);
-        for (let i = 0; i < bottomHalf.length; i++) {
-            const offset = i * 0.35;
-            setCard(bottomHalf[i], 18 + offset, 18 + i*0.4, 1.5 + offset*0.2, 300, 'ease');
-            bottomHalf[i].style.zIndex = i;
-        }
+        for(let i=0;i<botH.length;i++){setCard(botH[i],18+i*0.35,18+i*0.4,1.5+i*0.35*0.2,300,'ease');botH[i].style.zIndex=i;}
         await wait(350);
-        for (let i = 0; i < topHalf.length; i++) {
-            const base = bottomHalf.length;
-            const offset = (base + i) * 0.35 - (N*0.35/2);
-            setCard(topHalf[i], offset, 18 + (base+i)*0.4, offset*0.45, 320, 'cubic-bezier(0.175,0.885,0.32,1.275)');
-            topHalf[i].style.zIndex = base + i;
-            await wait(20);
-        }
+        for(let i=0;i<topH.length;i++){const base=botH.length;const offset=(base+i)*0.35-(N*0.35/2);setCard(topH[i],offset,18+(base+i)*0.4,offset*0.45,320,'cubic-bezier(0.175,0.885,0.32,1.275)');topH[i].style.zIndex=base+i;await wait(20);}
         await wait(420);
-
-        // 4. เรียงไพ่เป็นพัด
-        await setStatus('เรียงไพ่');
-        await wait(150);
-        stage.style.transition = 'opacity 0.4s ease';
-        stage.style.opacity = '0';
-        status.style.opacity = '0';
+        await setStatus('เรียงไพ่'); await wait(150);
+        stage.style.transition='opacity 0.4s ease';stage.style.opacity='0';status.style.opacity='0';
         await wait(450);
-
-        deck.innerHTML = '';
-        onComplete && onComplete();
-
+        deck.innerHTML=''; onComplete&&onComplete();
         await wait(30);
-        const realCards = deck.querySelectorAll('.card-mini');
-        realCards.forEach((card, i) => {
-            const finalAngle = parseFloat(card.dataset.angle) || 0;
-            card.style.transition = 'none';
-            card.style.opacity = '0';
-            card.style.transform = `rotate(0deg)`;
-            setTimeout(() => {
-                card.style.transition = `transform 0.55s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.35s ease`;
-                card.style.transform  = `rotate(${finalAngle}deg)`;
-                card.style.opacity    = '1';
-            }, 20 + i * 9);
-        });
+        const realCards=deck.querySelectorAll('.card-mini');
+        realCards.forEach((card,i)=>{const a=parseFloat(card.dataset.angle)||0;card.style.transition='none';card.style.opacity='0';card.style.transform=`rotate(0deg)`;setTimeout(()=>{card.style.transition=`transform 0.55s cubic-bezier(0.175,0.885,0.32,1.275),opacity 0.35s ease`;card.style.transform=`rotate(${a}deg)`;card.style.opacity='1';},20+i*9);});
     }
     animate().catch(console.error);
 }
 
 // ==========================================
-// 🌟 Card Flip 3D ก่อนไปหน้าผลลัพธ์
+// 🌟 Card Flip 3D
 // ==========================================
 function flipAllSlotsThenShow() {
-    const slots = document.querySelectorAll('.slot.filled');
-    if (!slots.length) { showResults('step-2'); return; }
-    slots.forEach((slot, i) => {
-        const card = selectedCards[i];
-        if (!card) return;
-        const cardNameShort = card.name.replace(/^\d+\.\s*/, '');
-        slot.innerHTML = `
-            <div class="slot-flip-wrap">
-                <div class="slot-flip-inner" id="flip-inner-${i}">
-                    <div class="slot-flip-front">✦</div>
-                    <div class="slot-flip-back">
-                        <div class="card-name-flip">${cardNameShort}</div>
-                        <div class="card-rev-flip">${card.isReversed ? '↕ หัวกลับ' : ''}</div>
-                    </div>
-                </div>
-            </div>`;
+    const slots=document.querySelectorAll('.slot.filled');
+    if(!slots.length){showResults('step-2');return;}
+    slots.forEach((slot,i)=>{
+        const card=selectedCards[i];if(!card)return;
+        const name=card.name.replace(/^\d+\.\s*/,'');
+        slot.innerHTML=`<div class="slot-flip-wrap"><div class="slot-flip-inner" id="flip-inner-${i}"><div class="slot-flip-front">✦</div><div class="slot-flip-back"><div class="card-name-flip">${name}</div><div class="card-rev-flip">${card.isReversed?'↕ หัวกลับ':''}</div></div></div></div>`;
     });
-    slots.forEach((_, i) => {
-        setTimeout(() => {
-            const inner = document.getElementById(`flip-inner-${i}`);
-            if (inner) inner.classList.add('flipped');
-        }, i * 280);
-    });
-    setTimeout(() => showResults('step-2'), slots.length * 280 + 800);
+    slots.forEach((_,i)=>{setTimeout(()=>{const el=document.getElementById(`flip-inner-${i}`);if(el)el.classList.add('flipped');},i*280);});
+    setTimeout(()=>showResults('step-2'),slots.length*280+800);
 }
 
 // ==========================================
-// 🌟 Goodbye Modal — ✅ แก้ไม่โผล่ตอนโหลดหน้า
+// 🌟 Goodbye Modal
 // ==========================================
-(function createGoodbyeModal() {
-    const overlay = document.createElement('div');
-    overlay.id = 'goodbye-overlay';
-    overlay.className = 'goodbye-overlay';
-    overlay.innerHTML = `
-        <div class="goodbye-box">
-            <span class="goodbye-icon">✨</span>
-            <p class="goodbye-text">ขอให้คุณโชคดี<br>และใช้ชีวิตอย่างมีสตินะครับ</p>
-            <p class="goodbye-sub">กำลังออกจากเว็บ...</p>
-        </div>`;
-    document.body.appendChild(overlay);
+(function(){
+    const o=document.createElement('div');o.id='goodbye-overlay';o.className='goodbye-overlay';
+    o.innerHTML=`<div class="goodbye-box"><span class="goodbye-icon">✨</span><p class="goodbye-text">ขอให้คุณโชคดี<br>และใช้ชีวิตอย่างมีสตินะครับ</p><p class="goodbye-sub">กำลังออกจากเว็บ...</p></div>`;
+    document.body.appendChild(o);
 })();
-
-function showGoodbyeModal() {
-    const overlay = document.getElementById('goodbye-overlay');
-    if (overlay) overlay.classList.add('show');
-}
-
-// ✅ ป้องกัน popstate โผล่ตอนโหลดหน้าแรก
-// รอ 1.5 วินาทีหลังโหลดเสร็จแล้วค่อย listen
-let goodbyeReady = false;
-window.addEventListener('load', () => {
-    setTimeout(() => { goodbyeReady = true; }, 1500);
-});
-window.addEventListener('popstate', () => {
-    if (goodbyeReady) showGoodbyeModal();
-});
-
-// ปิดแท็บ/หน้าต่าง — ไม่โผล่ตอน refresh
-window.addEventListener('beforeunload', () => {
-    const isReload = window.performance?.navigation?.type === 1;
-    if (!isReload) showGoodbyeModal();
-});
-
-// ปุ่ม "ทำนายใหม่"
-function resetAndReload() {
-    showGoodbyeModal();
-    clearSessionState();
-    setTimeout(() => location.reload(), 1800);
-}
+function showGoodbyeModal(){const o=document.getElementById('goodbye-overlay');if(o)o.classList.add('show');}
+let goodbyeReady=false;
+window.addEventListener('load',()=>{setTimeout(()=>{goodbyeReady=true;},1500);});
+window.addEventListener('popstate',()=>{if(goodbyeReady)showGoodbyeModal();});
+window.addEventListener('beforeunload',()=>{const isReload=window.performance?.navigation?.type===1;if(!isReload)showGoodbyeModal();});
+function resetAndReload(){showGoodbyeModal();clearSessionState();setTimeout(()=>location.reload(),1800);}
