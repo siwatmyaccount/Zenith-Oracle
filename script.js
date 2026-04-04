@@ -1210,8 +1210,7 @@ function showResults(fromScene = 'step-2') {
     details.innerHTML += `
     <div class="result-row ai-summary-box" style="flex-direction: column; align-items: flex-start;">
         <h4 class="ai-title"><i data-lucide="sparkles"></i> Zenith AI Insight (บทสรุปจากญาณหยั่งรู้)</h4>
-        <p id="ai-summary-content" class="ai-content"></p>
-    </div>
+        <div id="ai-summary-content" class="ai-content"></div> </div>
     `;
     generateAIPrediction(); // สั่ง AI ให้เริ่มทำงาน
 
