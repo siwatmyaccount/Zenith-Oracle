@@ -929,11 +929,10 @@ function undoCardPick(index) {
 }
 
 
-// อัปเกรด: ระบบสร้างสำรับไพ่แบบกรีดโค้ง (แก้ปัญหาไพ่ล้นจอ และแตะ 2 จังหวะในมือถือแบบชัวร์ 100%)
+// อัปเกรด: ระบบสร้างสำรับไพ่แบบกรีดโค้ง 
 function generateDeck() {
     const deck = document.getElementById('card-deck');
     deck.innerHTML = '';
-    
     
     const totalCards = 42;
     const screenWidth = window.innerWidth;
@@ -958,58 +957,52 @@ function generateDeck() {
         let lastClickTime = 0;
 
         c.onclick = function(e) {
-            // ป้องกันการกดไพ่ใบที่บินไปแล้ว
-            if (this.classList.contains('picked')) return;
+            // ป้องกันการกดไพ่ใบที่บินไปแล้ว หรือกำลังบินอยู่
+            if (this.classList.contains('picked') || isFlying) return;
 
             // 🛑 เวทมนตร์แก้บั๊ก: ป้องกันเบราว์เซอร์ส่งคำสั่งคลิก 2 ครั้งซ้อนกันในเสี้ยววินาที
             const now = Date.now();
             if (now - lastClickTime < 300) return; 
             lastClickTime = now;
 
-            // ตรวจสอบว่าเป็นมือถือหรือไม่ (ใช้ความกว้างหน้าจอเป็นหลัก ชัวร์ที่สุด)
-            const isMobile = window.innerWidth <= 768;
-
-            if (isMobile) {
-                // ถ้ายังไม่ถูกโฟกัส (แตะครั้งแรก)
-               // ถ้ายังไม่ถูกโฟกัส (แตะครั้งแรก)
-                if (!this.classList.contains('focused')) {
-                    
-                    // 1. 🌟 อัปเกรด: กวาดล้างไพ่ใบอื่นที่ค้างโด่อยู่ให้หุบลงแบบ 100% 
-                    document.querySelectorAll('.card-mini').forEach(card => {
-                        if (card !== this && !card.classList.contains('picked')) {
-                            card.classList.remove('focused');
-                            card.style.transform = `rotate(${card.dataset.angle}deg)`;
-                            card.style.zIndex = card.dataset.zIndex;
-                            card.style.borderColor = "rgba(212, 175, 55, 0.5)";
-                        }
-                    });
-                    
-                    // 2. โฟกัสไพ่ใบนี้ (เด้งขึ้นมาให้เห็นชัดๆ)
-                    this.classList.add('focused');
-                    
-                    const liftDistance = window.innerWidth < 500 ? -40 : -30;
-                    this.style.transform = `rotate(${currentAngle}deg) translateY(${liftDistance}px) scale(1.2)`;
-                    this.style.zIndex = 100;
-                    this.style.borderColor = "var(--gold-bright)";
-                    
-                    if (navigator.vibrate) navigator.vibrate(50);
-                    
-                    return; // 🛑 สั่งหยุดการทำงานตรงนี้ เพื่อรอให้ผู้ใช้แตะซ้ำอีกรอบ
-                }
+            // ถ้ายังไม่ถูกโฟกัส (แตะครั้งแรก)
+            if (!this.classList.contains('focused')) {
+                
+                // 1. 🌟 อัปเกรด: กวาดล้างไพ่ใบอื่นที่ค้างโด่อยู่ให้หุบลงแบบ 100% 
+                document.querySelectorAll('.card-mini.focused').forEach(card => {
+                    if (card !== this && !card.classList.contains('picked')) {
+                        card.classList.remove('focused');
+                        card.style.transform = `rotate(${card.dataset.angle}deg)`;
+                        card.style.zIndex = card.dataset.zIndex;
+                        card.style.borderColor = "rgba(212, 175, 55, 0.5)";
+                    }
+                });
+                
+                // 2. โฟกัสไพ่ใบนี้ (เด้งขึ้นมาให้เห็นชัดๆ)
+                this.classList.add('focused');
+                
+                const liftDistance = window.innerWidth < 500 ? -40 : -30;
+                this.style.transform = `rotate(${currentAngle}deg) translateY(${liftDistance}px) scale(1.2)`;
+                this.style.zIndex = 100;
+                this.style.borderColor = "var(--gold-bright)";
+                
+                if (navigator.vibrate) navigator.vibrate(50);
+                
+                return; // 🛑 สั่งหยุดการทำงานตรงนี้ เพื่อรอให้ผู้ใช้แตะซ้ำอีกรอบ
             }
             
-            // 🌟 ถ้าเป็นคอมพิวเตอร์ หรือ มือถือที่ "แตะซ้ำใบเดิม" แล้ว จะทำงานส่วนนี้
+            // 🌟 "แตะซ้ำใบเดิม" ครั้งที่ 2 จะทำงานส่วนนี้
             
             // 1. ลบคลาสโฟกัสออก
             this.classList.remove('focused'); 
             
-            // 2. เรียกฟังก์ชันบินเข้าสล็อต
+            // 2. เรียกฟังก์ชันบินเข้าสล็อต พร้อมซ่อนไพ่ใบนี้ในกอง
             pickCard(this); 
         };
 
-        // 💻 ระบบ Hover สำหรับคอมพิวเตอร์ (ไม่ทำงานในมือถือ)
+        // 💻 ระบบ Hover สำหรับคอมพิวเตอร์ (มือถือไม่ทำงาน)
         c.onmouseenter = function() {
-            if (window.innerWidth <= 768) return; // มือถือไม่ต้องทำ
+            if (window.innerWidth <= 768) return; 
             if(!this.classList.contains('picked')) {
                 this.style.transform = `rotate(${currentAngle}deg) translateY(-25px) scale(1.15)`;
                 this.style.zIndex = 100;
@@ -1018,7 +1011,7 @@ function generateDeck() {
         };
         
         c.onmouseleave = function() {
-            if (window.innerWidth <= 768) return; // มือถือไม่ต้องทำ
+            if (window.innerWidth <= 768) return; 
             if(!this.classList.contains('picked') && !this.classList.contains('focused')) {
                 this.style.transform = `rotate(${currentAngle}deg)`;
                 this.style.zIndex = this.dataset.zIndex;
@@ -1031,7 +1024,7 @@ function generateDeck() {
 }
 
 // ==========================================
-// 🌟 5. ระบบไพ่พุ่งเข้าสล็อตเป้าหมาย
+// 🌟 5. ระบบไพ่พุ่งเข้าสล็อตเป้าหมาย (แก้ไม่ให้มีไพ่ทิ้งไว้ในกอง)
 // ==========================================
 function pickCard(el) {
     const pickedCount = selectedCards.filter(c => c !== null).length;
@@ -1044,22 +1037,28 @@ function pickCard(el) {
     safePlay(sfxPick);
     isFlying = true;
 
+    // --- ส่วนสุ่มไพ่จากฐานข้อมูล (เหมือนเดิม) ---
     let cardTemplate = finalTarotDB[Math.floor(Math.random() * finalTarotDB.length)];
-    // เช็คไม่ให้ไพ่ซ้ำกับใบที่มีอยู่ในช่อง
     while(selectedCards.some(c => c !== null && c.name === cardTemplate.name)) {
         cardTemplate = finalTarotDB[Math.floor(Math.random() * finalTarotDB.length)];
     }
     const isReversed = Math.random() > 0.7; 
     const card = { ...cardTemplate, isReversed, deckElementIndex: el.dataset.zIndex };
-    
+    // ------------------------------------------
+
+    // มาร์กว่าไพ่ใบนี้ถูกเลือกแล้ว
     el.classList.add('picked');
+    
+    // 🚨 หัวใจหลักของการแก้ปัญหา! ซ่อนไพ่ใบที่อยู่ในกองทันที 🚨
+    el.style.opacity = '0'; // ทำให้ล่องหน เพื่อไม่ให้เห็นเป็นร่างจางๆ ค้างในกอง
 
     const slots = document.querySelectorAll('.slot');
-    const targetSlot = slots[targetIndex]; // ไพ่จะบินไปหาช่องว่างเป้าหมาย
+    const targetSlot = slots[targetIndex]; 
     
     const startRect = el.getBoundingClientRect();
     const targetRect = targetSlot.getBoundingClientRect();
 
+    // สร้างไพ่ตัวแทนสำหรับทำแอนิเมชันบิน
     const flyingCard = document.createElement('div');
     flyingCard.className = 'flying-card';
     flyingCard.style.left = `${startRect.left}px`;
@@ -1067,28 +1066,64 @@ function pickCard(el) {
     flyingCard.style.transform = `rotate(${el.dataset.angle || 0}deg)`;
     document.body.appendChild(flyingCard);
 
+    // บังคับให้เบราว์เซอร์คำนวณ Layout เพื่อให้ transition ทำงาน
     void flyingCard.offsetWidth;
 
+    // สั่งให้บินไปที่เป้าหมาย
     flyingCard.style.left = `${targetRect.left}px`;
     flyingCard.style.top = `${targetRect.top}px`;
     flyingCard.style.width = `${targetRect.width}px`;
     flyingCard.style.height = `${targetRect.height}px`;
     flyingCard.style.transform = `rotate(0deg)`;
 
+    // เมื่อแอนิเมชันบินจบ
     setTimeout(() => {
-        flyingCard.remove(); 
+        flyingCard.remove(); // ลบไพ่ที่ใช้ทำแอนิเมชันทิ้ง
         
-        // 🌟 ยัดไพ่ลงในตำแหน่งเฉพาะที่ว่างนั้น
+        // 🌟 ยัดไพ่ลงในตำแหน่งช่องว่าง
         selectedCards[targetIndex] = card; 
         updateSlotsDisplay(); 
         saveSessionState(); 
         isFlying = false; 
 
-        // ถ้าไม่มีช่องไหนว่างอีกแล้ว = ครบ
+        // ถ้าเลือกครบแล้ว ให้เตรียมไปหน้าถัดไป
         if (!selectedCards.includes(null)) {
             setTimeout(() => flipAllSlotsThenShow(), 800);
         }
     }, 600); 
+}
+
+// ==========================================
+// 🌟 4. ระบบยกเลิกไพ่ (แก้ให้ไพ่กลับมาโชว์ในกองเหมือนเดิม)
+// ==========================================
+function undoCardPick(index) {
+    const pickedCount = selectedCards.filter(c => c !== null).length;
+    if (pickedCount === user.spread) return; 
+    if (isFlying) return; 
+    
+    const card = selectedCards[index];
+    if (!card) return; 
+    
+    // เอาไพ่กลับไปคืนในกอง
+    if (card.deckElementIndex !== undefined) {
+        const deckCard = document.querySelector(`.card-mini[data-z-index="${card.deckElementIndex}"]`);
+        if(deckCard) {
+            deckCard.classList.remove('picked');
+            deckCard.classList.remove('focused');
+            
+            // 🚨 คืนชีพไพ่! ทำให้ไพ่ที่ซ่อนไว้กลับมามองเห็นอีกครั้ง 🚨
+            deckCard.style.opacity = '1'; 
+            
+            deckCard.style.transform = `rotate(${deckCard.dataset.angle}deg)`;
+            deckCard.style.zIndex = deckCard.dataset.zIndex;
+            deckCard.style.borderColor = "rgba(212, 175, 55, 0.5)";
+        }
+    }
+    
+    selectedCards[index] = null; 
+    
+    updateSlotsDisplay();
+    saveSessionState();
 }
 
 function calculateSoulNum(dob) {

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { width:1200px; height:630px; overflow:hidden; background:#05010a; }
+.card {
+  width:1200px; height:630px;
+  background: radial-gradient(ellipse at 50% 40%, #1e1235 0%, #05010a 70%);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  position:relative; overflow:hidden; font-family:Georgia,serif; text-align:center;
+}
+.glow1 { position:absolute; width:700px; height:700px; background:radial-gradient(circle,rgba(212,175,55,0.14) 0%,transparent 65%); top:-200px; left:50%; transform:translateX(-50%); pointer-events:none; }
+.glow2 { position:absolute; width:500px; height:500px; background:radial-gradient(circle,rgba(140,80,255,0.09) 0%,transparent 65%); bottom:-150px; left:50%; transform:translateX(-50%); pointer-events:none; }
+.circ { position:absolute; border-radius:50%; border:1px solid rgba(212,175,55,0.1); left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none; }
+.star { position:absolute; color:rgba(212,175,55,0.55); }
+.content { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; }
+.brand { display:flex; align-items:center; gap:14px; margin-bottom:28px; }
+.brand-ring { width:40px; height:40px; border:1.5px solid #d4af37; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+.brand-name { font-size:16px; letter-spacing:6px; color:#d4af37; text-transform:uppercase; font-family:Arial,sans-serif; }
+.divider-h { width:80px; height:1px; background:linear-gradient(to right,transparent,#d4af37,transparent); margin:0 auto 32px; }
+.title { font-size:80px; font-weight:bold; line-height:1.08; background:linear-gradient(135deg,#fceabb 0%,#d4af37 45%,#b8860b 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:24px; letter-spacing:-1px; }
+.sub { font-size:22px; color:rgba(255,255,255,0.7); line-height:1.5; margin-bottom:36px; font-family:Arial,sans-serif; font-weight:300; max-width:700px; }
+.tags { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:40px; }
+.tag { padding:8px 22px; border:1px solid rgba(212,175,55,0.45); border-radius:30px; font-size:15px; color:#d4af37; font-family:Arial,sans-serif; background:rgba(212,175,55,0.08); }
+.url-text { font-size:14px; color:rgba(255,255,255,0.3); font-family:Arial,sans-serif; letter-spacing:1px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+  <div class="circ" style="width:750px;height:750px;"></div>
+  <div class="circ" style="width:550px;height:550px;opacity:0.6;"></div>
+  <div class="circ" style="width:350px;height:350px;opacity:0.4;"></div>
+  <div class="star" style="top:60px;left:120px;font-size:18px;">✦</div>
+  <div class="star" style="top:80px;right:130px;font-size:12px;opacity:0.5;">✦</div>
+  <div class="star" style="bottom:80px;left:100px;font-size:10px;opacity:0.4;">✦</div>
+  <div class="star" style="bottom:90px;right:110px;font-size:16px;">✦</div>
+  <div class="star" style="top:200px;left:60px;font-size:8px;opacity:0.35;">✦</div>
+  <div class="star" style="top:180px;right:65px;font-size:9px;opacity:0.4;">✦</div>
+  <div class="content">
+    <div class="brand">
+      <div class="brand-ring">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2">
+          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+        </svg>
+      </div>
+      <span class="brand-name">Zenith Oracle</span>
+    </div>
+    <div class="divider-h"></div>
+    <div class="title">พยากรณ์<br>ชะตาชีวิต</div>
+    <div class="sub">เปิดไพ่ทาโรต์ดูดวงเรื่องความรัก การเงิน การงาน<br>พร้อม AI วิเคราะห์คำทำนายเฉพาะคุณ</div>
+    <div class="tags">
+      <span class="tag">ไพ่ทาโรต์</span>
+      <span class="tag">ดูดวง AI</span>
+      <span class="tag">ความรัก</span>
+      <span class="tag">การเงิน</span>
+      <span class="tag">การงาน</span>
+    </div>
+    <div class="url-text">siwatmyaccount.github.io/Zenith-Oracle</div>
+  </div>
+</div>
+</body>
+</html>
