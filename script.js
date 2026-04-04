@@ -31,8 +31,17 @@ async function generateAIPrediction() {
     // ✅ [แก้ไข #1] ไม่ต้องเช็ค key ใน frontend แล้ว proxy จัดการให้
     // ถ้า key ไม่ได้ตั้งค่าใน Netlify, proxy จะ return error กลับมาเอง
 
-    aiBox.innerHTML = `<div class="skeleton-wrap"><div class="skeleton-line" style="width:92%"></div><div class="skeleton-line" style="width:78%"></div><div class="skeleton-line" style="width:85%"></div><div class="skeleton-line" style="width:60%"></div></div>`;
-
+    aiBox.innerHTML = `
+        <div class="ai-loading-text" style="font-size: 0.95rem; margin-bottom: 15px;">
+            ✨ เทพพยากรณ์กำลังเพ่งกระแสจิต เพื่อร้อยเรียงคำทำนายของคุณ...
+        </div>
+        <div class="skeleton-wrap">
+            <div class="skeleton-line" style="width:92%"></div>
+            <div class="skeleton-line" style="width:78%"></div>
+            <div class="skeleton-line" style="width:85%"></div>
+            <div class="skeleton-line" style="width:60%"></div>
+        </div>
+    `;
     const zodiacInfo = getZodiac(user.dob);
     const cardList = selectedCards.map((c, i) => `${i+1}. ${c.name} (${c.isReversed ? 'หัวกลับ' : 'ปกติ'})`).join('\n');
     
