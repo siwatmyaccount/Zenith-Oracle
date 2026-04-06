@@ -1486,7 +1486,9 @@ function prepareShareCard() {
     // 1. ชื่อและหัวข้อ
     const topicNames = { 'general': 'ภาพรวมชีวิต', 'love': 'ความรักเจาะลึก', 'money': 'การเงิน', 'work': 'การงาน' };
     const finalTopicText = user.spread === 4 ? "ความสัมพันธ์ความรัก" : topicNames[user.topic];
-    document.getElementById('share-title').innerText = `คำทำนายเรื่อง${finalTopicText} ของคุณ ${user.name}`;
+    // ชื่อกึ่งกลาง ไม่ตัดกลางคำ
+    const shareNameEl = document.getElementById('share-title');
+    shareNameEl.innerHTML = `คำทำนายเรื่อง<strong>${finalTopicText}</strong><br>ของคุณ <strong>${user.name}</strong>`;
     
     // 2. ข้อมูลส่วนตัว (คำนวณใหม่ให้สดเสมอ)
     const soulIndex = calculateSoulNum(user.dob);
@@ -1901,25 +1903,36 @@ async function preloadShareImage() {
     // 1. ดึงข้อมูลล่าสุดมาอัปเดตลงใน Layout ที่ซ่อนอยู่
     prepareShareCard();
 
-    // 2. ดึง Layout ออกมาบังคับแสดงผลแบบ Off-screen (ซ่อนไว้นอกจอเพื่อแอบแคปรูป)
-    shareLayout.style.display = 'block';
-    shareLayout.style.position = 'absolute';
-    shareLayout.style.left = '-9999px';
-    shareLayout.style.top = '-9999px';
-    shareLayout.style.width = '800px'; // ล็อคความกว้างให้รูปแชร์ออกมาสวยเป๊ะ
+    // 2. แสดง off-screen ด้วยความกว้าง 1080px ตรงกับ CSS
+    shareLayout.style.display        = 'flex';
+    shareLayout.style.flexDirection  = 'column';
+    shareLayout.style.position       = 'absolute';
+    shareLayout.style.left           = '-9999px';
+    shareLayout.style.top            = '0px';    // top:0 ให้ browser วัด scrollHeight ได้ถูก
+    shareLayout.style.width          = '1080px';
+    shareLayout.style.height         = 'auto';   // ความสูงตามเนื้อหา
 
-    // ✅ [แก้ไข #6] เรียก lucide หลัง inject content เสร็จและ layout แสดงอยู่
     if (window.lucide) lucide.createIcons();
-    // รอ 1 frame ให้ browser render icon ก่อนที่ html2canvas จะถ่ายรูป
+
+    // รอ 3 frames + 150ms ให้ browser layout+render เสร็จก่อนถ่าย
     await new Promise(r => requestAnimationFrame(r));
+    await new Promise(r => requestAnimationFrame(r));
+    await new Promise(r => requestAnimationFrame(r));
+    await new Promise(r => setTimeout(r, 150));
+
+    // วัดความสูงจริง
+    const realH = Math.max(shareLayout.scrollHeight, 1200);
 
     try {
-        // 3. ใช้ html2canvas ถ่ายรูปส่วนนั้น
         const canvas = await html2canvas(shareLayout, {
-            scale: 2, // เพิ่มความคมชัดระดับ HD (x2)
-            useCORS: true, // อนุญาตให้โหลดรูปภาพไพ่จากลิงก์ภายนอกได้
-            backgroundColor: '#0a0510', 
-            logging: false
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#0a0510',
+            logging: false,
+            width:  1080,
+            height: realH,
+            windowWidth:  1080,
+            windowHeight: realH,
         });
 
         // 4. แปลงภาพเป็น Data URL (สำหรับให้ปุ่มกดดาวน์โหลดเซฟลงเครื่อง)
@@ -1935,9 +1948,10 @@ async function preloadShareImage() {
     } catch (error) {
         console.error("❌ เกิดข้อผิดพลาดในการสร้างรูป:", error);
     } finally {
-        // 6. แคปเสร็จแล้ว ซ่อน Layout กลับไปเหมือนเดิม
-        shareLayout.style.display = 'none';
-        shareLayout.style.position = 'static';
+        shareLayout.style.display  = 'none';
+        shareLayout.style.position = 'fixed';
+        shareLayout.style.top      = '-9999px';
+        shareLayout.style.height   = 'auto';
     }
 }
 
@@ -1963,12 +1977,23 @@ function runShuffleAnimation(onComplete) {
         function setStatus(text) { status.style.opacity='0'; return wait(250).then(()=>{status.textContent=text;status.style.opacity='1';}); }
         function makeCard(x,y,rot,zIdx) {
             const c=document.createElement('div'); c.className='shuffle-card';
-            Object.assign(c.style,{left:`calc(50% - 25px + ${x}px)`,bottom:`${y}px`,transform:`rotate(${rot}deg)`,zIndex:zIdx,transition:'none',opacity:'1'});
+            // วางที่กึ่งกลาง stage แล้วใช้ transform เคลื่อนที่
+            Object.assign(c.style,{
+                left:'calc(50% - 25px)',
+                bottom:'18px',
+                transform:`translate(${x}px,${-y}px) rotate(${rot}deg)`,
+                zIndex:zIdx,
+                transition:'none',
+                opacity:'1',
+                willChange:'transform,opacity',
+            });
             stage.appendChild(c); return c;
         }
+        // GPU-accelerated: ใช้ translate แทน left/bottom เพื่อไม่ให้ browser repaint
+        const baseX = 0; // จุดกึ่งกลาง stage
         function setCard(c,x,y,rot,dur,ease) {
-            c.style.transition=dur?`left ${dur}ms ${ease||'ease'},bottom ${dur}ms ${ease||'ease'},transform ${dur}ms ${ease||'ease'}`:'none';
-            c.style.left=`calc(50% - 25px + ${x}px)`;c.style.bottom=`${y}px`;c.style.transform=`rotate(${rot}deg)`;
+            c.style.transition=dur?`transform ${dur}ms ${ease||'ease'}`:'none';
+            c.style.transform=`translate(${x}px, ${-y}px) rotate(${rot}deg)`;
         }
         await setStatus('วางไพ่');
         const stackCards=[];

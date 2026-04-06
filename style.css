@@ -904,45 +904,131 @@ body.theme-rose {
 /* =========================================
    Phase 5 - ระบบที่ 1: การ์ดแชร์ผลลัพธ์สุดหรู (Full Detail Infographic)
 ========================================= */
+/* ══════════════════════════════════════════
+   Share Card Layout — ออกแบบใหม่ให้สวยสม่ำเสมอ
+   Width: 1080px (IG portrait standard)
+   Height: auto — ยืดตามเนื้อหา oracle ไม่หาย
+══════════════════════════════════════════ */
 .share-card-layout {
-    position: fixed;
-    top: -9999px; left: -9999px;
-    width: 1080px; height: 1920px; /* ขนาด IG Story มาตรฐาน */
-    background: radial-gradient(circle at center, #1b1229 0%, #05010a 100%);
-    color: #fff; display: flex; flex-direction: column; align-items: center;
-    padding: 70px 50px; box-sizing: border-box; z-index: -100;
+    position: absolute;
+    top: 0; left: -9999px;
+    width: 1080px;
+    height: auto;
+    min-height: 1200px;
+    background: radial-gradient(circle at 50% 30%, #1b1229 0%, #05010a 70%);
+    color: #fff;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 60px 60px 70px;
+    box-sizing: border-box;
+    z-index: -100;
+    gap: 0;
 }
+
+/* วงเวทย์พื้นหลัง */
 .share-bg-decor {
-    position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-    width: 900px; height: 900px; border-radius: 50%;
-    border: 2px dashed rgba(212, 175, 55, 0.15); z-index: 0;
+    position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
+    width: 820px; height: 820px; border-radius: 50%;
+    border: 1px dashed rgba(212,175,55,0.12); z-index: 0; pointer-events: none;
 }
-.share-logo { z-index: 1; display: flex; align-items: center; gap: 10px; font-family: 'Cinzel', serif; font-size: 2rem; color: var(--gold); margin-bottom: 20px; }
-.share-title { z-index: 1; font-size: 2.8rem; color: var(--gold-bright); margin: 0 0 30px 0; text-align: center; }
 
-/* แบดจ์ข้อมูลส่วนตัว */
-.share-traits-row { z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 30px; width: 100%; }
-.share-badge { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.4); padding: 10px 20px; border-radius: 30px; font-size: 1.2rem; color: var(--gold-bright); }
+/* ── Logo: กึ่งกลางเสมอ ── */
+.share-logo {
+    z-index: 1;
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    font-family: 'Cinzel', serif; font-size: 1.8rem; color: var(--gold);
+    margin-bottom: 16px; letter-spacing: 3px;
+}
 
-/* คะแนน */
-.share-score-item { display: inline-block; font-size: 1.4rem; color: #fff; background: rgba(255,255,255,0.08); padding: 12px 25px; border-radius: 20px; margin: 0 10px; border: 1px solid rgba(255,255,255,0.1); }
+/* ── Title: กึ่งกลาง, ชื่อไม่ตัด ── */
+.share-title {
+    z-index: 1;
+    width: 100%; max-width: 960px;
+    font-size: 2.4rem; color: var(--gold-bright);
+    margin: 0 0 22px; text-align: center;
+    line-height: 1.35; word-break: keep-all; overflow-wrap: break-word;
+}
 
-/* กล่องคำถาม+ฟันธง */
-.share-question-box { z-index: 1; background: rgba(255,255,255,0.05); border-left: 8px solid var(--gold); padding: 30px 40px; border-radius: 15px; width: 100%; max-width: 900px; font-size: 1.5rem; line-height: 1.6; margin-bottom: 40px; margin-top: 30px;}
+/* ── Badges ── */
+.share-traits-row {
+    z-index: 1; width: 100%; max-width: 960px;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    margin-bottom: 18px;
+}
+.share-badge {
+    background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.4);
+    padding: 8px 18px; border-radius: 30px;
+    font-size: 1.1rem; color: var(--gold-bright);
+}
 
-/* คอลัมน์ไพ่ 3 ใบ */
-.share-cards-row { z-index: 1; display: flex; gap: 20px; width: 100%; justify-content: center; flex: 1; align-items: flex-start; }
-.share-card-col { flex: 1; display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.4); padding: 25px 20px; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.2); height: 100%; box-sizing: border-box; }
-.share-card-col .share-card-img { width: 190px; height: 310px; margin-bottom: 20px; border: 3px solid var(--gold); border-radius: 12px; object-fit: cover;}
-.share-card-name { font-size: 1.4rem; font-weight: bold; color: #fff; margin-bottom: 12px; text-align: center; }
-.share-card-desc { font-size: 1.2rem; color: #ddd; line-height: 1.5; text-align: left; width: 100%; }
+/* ── Deep traits box ── */
+.share-deep-traits-box {
+    z-index: 1; width: 100%; max-width: 960px;
+    background: linear-gradient(135deg,rgba(212,175,55,0.08) 0%,rgba(10,10,15,0.7) 100%);
+    border: 1px solid rgba(212,175,55,0.25); border-radius: 14px;
+    padding: 18px 26px; margin-bottom: 18px; box-sizing: border-box;
+}
+.share-deep-desc { color: #eee; font-size: 1.15rem; line-height: 1.5; margin: 0 0 10px; }
+.share-deep-desc:last-child { margin-bottom: 0; }
 
-/* กล่องออราเคิล */
-.share-oracle-box { z-index: 1; margin-top: 30px; padding: 25px 40px; background: linear-gradient(135deg, rgba(255, 77, 148, 0.15) 0%, rgba(10, 10, 15, 0.9) 100%); border: 1px solid var(--love); border-radius: 20px; width: 100%; max-width: 900px; text-align: center; margin-bottom: 20px; }
-.share-oracle-title { color: #ff99cc; font-weight: bold; font-size: 1.3rem; margin-bottom: 10px; }
-.share-oracle-text { font-size: 1.5rem; font-style: italic; color: #fff; line-height: 1.5; }
+/* ── Scores ── */
+.share-score-item {
+    display: inline-block; font-size: 1.3rem; color: #fff;
+    background: rgba(255,255,255,0.07); padding: 10px 22px;
+    border-radius: 20px; margin: 0 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
 
-.share-footer { z-index: 1; margin-top: auto; font-size: 1.5rem; color: rgba(255,255,255,0.4); }
+/* ── Question box ── */
+.share-question-box {
+    z-index: 1; width: 100%; max-width: 960px;
+    background: rgba(255,255,255,0.04);
+    border-left: 6px solid var(--gold); border-radius: 0 12px 12px 0;
+    padding: 22px 30px; font-size: 1.35rem; line-height: 1.6;
+    margin: 16px 0; box-sizing: border-box;
+}
+
+/* ── Cards row: ไพ่เรียงกัน กรอบสมบูรณ์ ── */
+.share-cards-row {
+    z-index: 1; width: 100%; max-width: 960px;
+    display: flex; gap: 16px; justify-content: center; align-items: stretch;
+    margin: 16px 0;
+}
+.share-card-col {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; align-items: center;
+    background: rgba(0,0,0,0.45);
+    padding: 20px 16px; border-radius: 16px;
+    border: 1px solid rgba(212,175,55,0.25);
+    box-sizing: border-box;
+}
+.share-card-col .share-card-img {
+    width: 160px; height: 260px; margin-bottom: 14px;
+    border: 2px solid var(--gold); border-radius: 10px; object-fit: cover;
+}
+.share-card-name { font-size: 1.25rem; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center; }
+.share-card-desc { font-size: 1.1rem; color: #ddd; line-height: 1.5; text-align: left; width: 100%; }
+
+/* ── Oracle box: ไม่หาย ── */
+.share-oracle-box {
+    z-index: 1; flex-shrink: 0;
+    width: 100%; max-width: 960px;
+    margin: 16px 0 0;
+    padding: 22px 32px;
+    background: linear-gradient(135deg,rgba(255,77,148,0.12) 0%,rgba(10,10,15,0.92) 100%);
+    border: 1px solid var(--love); border-radius: 16px;
+    text-align: center; box-sizing: border-box;
+}
+.share-oracle-title { color: #ff99cc; font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; }
+.share-oracle-text  { font-size: 1.4rem; font-style: italic; color: #fff; line-height: 1.55; }
+
+/* ── Footer: กึ่งกลางเสมอ ── */
+.share-footer {
+    z-index: 1; width: 100%;
+    margin-top: 24px; padding-bottom: 4px;
+    font-size: 1.3rem; color: rgba(255,255,255,0.35);
+    text-align: center;
+}
 
 /* =========================================
    Phase 5 - ระบบที่ 2: ปุ่ม Cooldown
@@ -976,14 +1062,7 @@ body.theme-rose {
     margin-bottom: 0;
 }
 
-/* 🌟 ปรับลดช่องไฟของเดิมนิดหน่อย เพื่อให้ยัดข้อมูลทุกอย่างลง 1920px ได้พอดี */
-.share-title { margin-bottom: 20px; font-size: 2.6rem; }
-.share-traits-row { margin-bottom: 20px; }
-.share-question-box { padding: 20px 30px; margin-bottom: 30px; margin-top: 25px; }
-.share-cards-row { gap: 15px; margin-bottom: 20px; }
-.share-card-col { padding: 15px; }
-.share-card-col .share-card-img { width: 180px; height: 300px; margin-bottom: 15px; }
-.share-oracle-box { margin-top: 15px; padding: 20px 30px; margin-bottom: 15px; }
+/* share overrides removed — new layout handles all sizing */
 
 /* =========================================
    🚀 อัปเกรด: ระบบเร่งความเร็วและแก้ความฝืดบนมือถือ (Hardware Acceleration)
@@ -1296,3 +1375,65 @@ input:focus:not(:focus-visible),
 .goodbye-icon { font-size:2.8rem; margin-bottom:16px; display:block; }
 .goodbye-text { font-family:'Anuphan',sans-serif; font-size:1.15rem; color:var(--gold-bright); line-height:1.7; margin-bottom:24px; }
 .goodbye-sub { font-size:0.8rem; color:rgba(255,255,255,0.35); }
+/* =========================================
+   🚀 Mobile Performance — GPU Acceleration
+   แก้ lag/stuttering บนมือถือทุกรุ่น
+========================================= */
+
+/* ปิด heavy animation บนมือถือที่ไม่รองรับ */
+@media (max-width: 768px) {
+    /* ลด particle effect บนมือถือ */
+    .magic-particle { display: none !important; }
+
+    /* ปิด mystic smoke animation ที่หนักที่สุด */
+    .mystic-smoke, .mystic-smoke::after {
+        animation-play-state: paused !important;
+    }
+
+    /* ลด floating candle animation */
+    .floating-candle { animation-duration: 6s !important; }
+
+    /* soul orb ให้ animate ช้าลง */
+    .soul-orb { animation-duration: 8s !important; }
+}
+
+/* shuffle card GPU layer */
+.shuffle-card {
+    position: absolute;
+    left: calc(50% - 25px);
+    bottom: 18px;
+    will-change: transform, opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform-origin: center bottom;
+}
+
+/* ปิด pointer-events บน decorative elements ทั้งหมด */
+.magic-circle-bg, .soul-orb, .floating-candle,
+.mystic-smoke-container, .magic-dust, .stars-container {
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* card-mini: reduce paint area */
+.card-mini {
+    contain: layout style;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* scene transition: GPU layer */
+.scene {
+    will-change: opacity;
+}
+
+/* ปิด glow animation บนมือถือ */
+@media (max-width: 768px) {
+    .main-logo {
+        box-shadow: none !important;
+        animation: none !important;
+    }
+    .glow-text {
+        animation: none !important;
+    }
+}
