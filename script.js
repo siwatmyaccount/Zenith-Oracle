@@ -59,13 +59,17 @@ async function generateAIPrediction() {
     ใช้ภาษาที่ดูหรูหรา ลึกลับ แต่ให้กำลังใจในตอนท้าย ห้ามใช้คำหยาบหรือคำเตือนที่น่ากลัวเกินไป
     `;
 
+    // DEV #2: AbortController — cancel AI request ถ้าผู้ใช้ออกจากหน้า
+    if (window._aiAbortController) window._aiAbortController.abort();
+    window._aiAbortController = new AbortController();
+    const signal = window._aiAbortController.signal;
+
     try {
-        // ✅ [แก้ไข #1] เรียกผ่าน Cloudflare Worker Proxy — API Key ไม่โผล่ใน browser
-        // ✏️ เปลี่ยน URL ให้ตรงกับ Worker ของคุณหลัง wrangler deploy
         const PROXY_URL = 'https://zenith-oracle-proxy.zenith-oracle.workers.dev';
         const response = await fetch(PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal,
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: { temperature: 0.7, maxOutputTokens: 3000 }
@@ -89,6 +93,7 @@ async function generateAIPrediction() {
             finalAiBox.innerHTML = "<span style='color:#ff4757;'>⚠️ AI ส่งคำตอบกลับมาเป็นค่าว่าง</span>";
         }
     } catch (error) {
+        if (error.name === 'AbortError') return; // ยกเลิก request โดยตั้งใจ ไม่ต้องแสดง error
         console.error("Fetch Error:", error);
         const finalAiBox = document.getElementById('ai-summary-content');
         if(finalAiBox) finalAiBox.innerHTML = `<span style='color:#ff4757;'>⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
@@ -132,11 +137,7 @@ function clearSessionState() {
     sessionStorage.removeItem('zenith_session');
 }
 
-// 👇 ก๊อปปี้โค้ด 4 บรรทัดนี้ ไปวางต่อท้ายเลยครับ 👇
-function resetAndReload() {
-    clearSessionState();
-    location.reload();
-}
+// resetAndReload() ถูกย้ายไปท้าย file พร้อม goodbye modal แล้ว
 
 // ==========================================
 // 🌟 1. ระบบกู้คืนเซสชัน (แก้ไขให้รองรับช่องว่าง)
@@ -842,8 +843,9 @@ function startReading() {
     }
 
     safePlay(sfxStart);
-    // ✅ [แก้ไข #4] เล่น BGM ใน user gesture (กดปุ่ม) ผ่าน autoplay policy ทุก browser
     if (!isMuted) bgmMystic.play().catch(e => console.log("BGM blocked:", e));
+    // DEV #1: Haptic pattern สำหรับ start reading [short-long]
+    if (navigator.vibrate) navigator.vibrate([30, 50, 80]);
     
     // 🌟 หัวใจสำคัญ: จองช่องว่างไว้ล่วงหน้าตามจำนวนไพ่ที่เลือก
     selectedCards = new Array(user.spread).fill(null); 
@@ -912,9 +914,8 @@ function updateSlotsDisplay() {
 // 🌟 4. ระบบยกเลิกไพ่ (แก้ไขให้ไพ่หุบกลับเข้ากองทันที)
 // ==========================================
 function undoCardPick(index) {
-    const pickedCount = selectedCards.filter(c => c !== null).length;
-    if (pickedCount === user.spread) return; 
-    if (isFlying) return; 
+    // ✅ FIX #2: อนุญาตให้ยกเลิกได้ตลอด จนกว่าจะ showResults แล้ว
+    if (isFlying) return;
     
     const card = selectedCards[index];
     if (!card) return; 
@@ -1046,14 +1047,12 @@ function pickCard(el) {
     safePlay(sfxPick);
     isFlying = true;
 
-    // --- ส่วนสุ่มไพ่จากฐานข้อมูล (เหมือนเดิม) ---
-    let cardTemplate = finalTarotDB[Math.floor(Math.random() * finalTarotDB.length)];
-    while(selectedCards.some(c => c !== null && c.name === cardTemplate.name)) {
-        cardTemplate = finalTarotDB[Math.floor(Math.random() * finalTarotDB.length)];
-    }
-    const isReversed = Math.random() > 0.7; 
+    // DEV #4: Fisher-Yates — สุ่มไม่ซ้ำ ไม่มี infinite loop
+    const usedNames = new Set(selectedCards.filter(Boolean).map(c => c.name));
+    const available = finalTarotDB.filter(c => !usedNames.has(c.name));
+    const cardTemplate = available[Math.floor(Math.random() * available.length)] || finalTarotDB[0];
+    const isReversed = Math.random() > 0.7;
     const card = { ...cardTemplate, isReversed, deckElementIndex: el.dataset.zIndex };
-    // ------------------------------------------
 
     // มาร์กว่าไพ่ใบนี้ถูกเลือกแล้ว
     el.classList.add('picked');
@@ -1097,6 +1096,7 @@ function pickCard(el) {
 
         // ถ้าเลือกครบแล้ว ให้เตรียมไปหน้าถัดไป
         if (!selectedCards.includes(null)) {
+            if (navigator.vibrate) navigator.vibrate([30, 50, 30]); // DEV #1: ครบไพ่
             setTimeout(() => flipAllSlotsThenShow(), 800);
         }
     }, 600); 
@@ -1203,7 +1203,22 @@ function showResults(fromScene = 'step-2') {
         `;
     }
 
-    function scoreForTopic(t){return Math.min(100,Math.max(10,Math.floor(selectedCards.reduce((s,c)=>s+(c.isReversed?c.score-10:c.score)+((c[t]&&(c[t].present||'').length>20)?8:-5),0)/user.spread)));}
+    // ✅ FIX #4: คำนวณคะแนนแยกจริงๆ ตาม topic — ต่างกันมากขึ้น
+    function scoreForTopic(topic) {
+        const topicWeights = { love: [1.2,0.8,0.9], money: [0.8,1.2,0.9], work: [0.8,0.9,1.2], general: [1,1,1] };
+        const weights = topicWeights[topic] || [1,1,1];
+        let total = 0;
+        selectedCards.forEach((c, idx) => {
+            const base = c.isReversed ? Math.max(5, c.score - 15) : c.score;
+            const topicData = c[topic];
+            const hasDeepContent = topicData && (topicData.present || '').length > 30;
+            const topicBonus = hasDeepContent ? 12 : -8;
+            const reversalPenalty = c.isReversed ? -10 : 0;
+            const w = weights[idx] || 1;
+            total += (base + topicBonus + reversalPenalty) * w;
+        });
+        return Math.min(99, Math.max(11, Math.round(total / user.spread)));
+    }
     const avg=Math.floor(selectedCards.reduce((a,b)=>a+(b.isReversed?b.score-10:b.score),0)/user.spread);
     updateScore('score-love',scoreForTopic('love'));
     updateScore('score-money',scoreForTopic('money'));
@@ -1368,20 +1383,25 @@ function showResults(fromScene = 'step-2') {
     // ==========================================
     // 🌟 ระบบเครื่องพิมพ์ดีด + Scroll Observer สำหรับออราเคิล
     // ==========================================
+    // ✅ FIX #3: typeWriterEffect มี cleanup ป้องกัน memory leak
+    let _twTimer = null;
     function typeWriterEffect(text, elementId, speed) {
+        if (_twTimer) { clearTimeout(_twTimer); _twTimer = null; }
         let i = 0;
         const element = document.getElementById(elementId);
-        if(!element) return;
+        if (!element) return;
         element.innerHTML = '';
-        element.classList.add('typewriter-text'); 
-        
+        element.classList.add('typewriter-text');
         function type() {
+            // หยุดถ้า element ถูกลบออกจาก DOM แล้ว
+            if (!document.getElementById(elementId)) return;
             if (i < text.length) {
                 element.innerHTML += text.charAt(i);
                 i++;
-                setTimeout(type, speed);
+                _twTimer = setTimeout(type, speed);
             } else {
-                element.classList.remove('typewriter-text'); // พิมพ์เสร็จให้เอาเคอร์เซอร์ออก
+                element.classList.remove('typewriter-text');
+                _twTimer = null;
             }
         }
         type();
@@ -1688,13 +1708,13 @@ function toggleReadPrediction() {
     }
 
     // 🌟 ตัดเสียงเก่าทิ้งทุกครั้งที่กดปุ่ม เพื่อป้องกันเสียงตีกัน (Race Condition)
-    window.speechSynthesis.cancel(); 
-
+    window.speechSynthesis.cancel();
     if (isReading) {
         isReading = false;
+        utterance = null;
         btn.innerHTML = `<i data-lucide="volume-2"></i> ฟังคำทำนาย`;
-        lucide.createIcons();
-        return; // กดหยุดแล้วให้ออกเลย ไม่ต้องอ่านต่อ
+        if(window.lucide) lucide.createIcons();
+        return;
     }
 
     let topicText = document.getElementById('user-topic').options[document.getElementById('user-topic').selectedIndex].text;
@@ -1752,27 +1772,71 @@ function toggleReadPrediction() {
         textToRead += "จบคำทำนายแล้วครับ. ขอให้คุณโชคดี, และใช้ชีวิตอย่างมีสตินะครับ.";
     }
 
-    utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.lang = 'th-TH'; 
-    utterance.rate = 0.85; 
-    utterance.pitch = 0.9; 
+    // FIX TTS: รอ voices โหลดก่อน แล้วค่อย speak — แก้ปัญหา mobile silent
+    function doSpeak() {
+        utterance = new SpeechSynthesisUtterance(textToRead);
+        // เลือก voice ภาษาไทยถ้ามี ไม่งั้นใช้ default
+        const voices = window.speechSynthesis.getVoices();
+        const thVoice = voices.find(v => v.lang.startsWith('th')) ||
+                        voices.find(v => v.lang.startsWith('en'));
+        if (thVoice) utterance.voice = thVoice;
+        utterance.lang  = 'th-TH';
+        utterance.rate  = 0.85;
+        utterance.pitch = 0.9;
+        utterance.volume = 1.0;
 
-    utterance.onend = () => {
-        isReading = false;
-        btn.innerHTML = `<i data-lucide="volume-2"></i> ฟังคำทำนาย`;
-        lucide.createIcons();
-    };
+        utterance.onend = () => {
+            isReading = false;
+            btn.innerHTML = `<i data-lucide="volume-2"></i> ฟังคำทำนาย`;
+            if(window.lucide) lucide.createIcons();
+        };
+        utterance.onerror = (e) => {
+            console.warn('TTS error:', e.error);
+            isReading = false;
+            btn.innerHTML = `<i data-lucide="volume-2"></i> ฟังคำทำนาย`;
+            if(window.lucide) lucide.createIcons();
+        };
 
-    utterance.onerror = () => {
-        isReading = false;
-        btn.innerHTML = `<i data-lucide="volume-2"></i> ฟังคำทำนาย`;
-        lucide.createIcons();
-    };
+        // iOS Safari fix: resume ก่อน speak เสมอ
+        window.speechSynthesis.resume();
+        window.speechSynthesis.speak(utterance);
 
-    window.speechSynthesis.speak(utterance);
+        // Keepalive: iOS หยุด TTS หลัง ~15 วิ ต้องเรียก resume ซ้ำ
+        const keepAlive = setInterval(() => {
+            if (!isReading) { clearInterval(keepAlive); return; }
+            window.speechSynthesis.pause();
+            window.speechSynthesis.resume();
+        }, 12000);
+
+        utterance.onend = () => {
+            clearInterval(keepAlive);
+            isReading = false;
+            btn.innerHTML = `<i data-lucide="volume-2"></i> ฟังคำทำนาย`;
+            if(window.lucide) lucide.createIcons();
+        };
+        utterance.onerror = (e) => {
+            clearInterval(keepAlive);
+            console.warn('TTS error:', e.error);
+            isReading = false;
+            btn.innerHTML = `<i data-lucide="volume-2"></i> ฟังคำทำนาย`;
+            if(window.lucide) lucide.createIcons();
+        };
+    }
+
     isReading = true;
     btn.innerHTML = `<i data-lucide="square"></i> หยุดฟัง`;
-    lucide.createIcons();
+    if(window.lucide) lucide.createIcons();
+
+    // รอ voices พร้อมก่อน (โดยเฉพาะ Android)
+    if (window.speechSynthesis.getVoices().length > 0) {
+        doSpeak();
+    } else {
+        window.speechSynthesis.onvoiceschanged = () => { doSpeak(); };
+        // Fallback: ถ้า onvoiceschanged ไม่ fire ใน 1 วิ ให้ speak เลย
+        setTimeout(() => {
+            if (isReading && !utterance) doSpeak();
+        }, 1000);
+    }
 }
 
 let lastDustTime = 0; // ตัวแปรเก็บเวลาสำหรับ Throttle
@@ -1965,6 +2029,8 @@ window.addEventListener('load', checkDailyCooldown);
 function runShuffleAnimation(onComplete) {
     const deck = document.getElementById('card-deck');
     deck.innerHTML = '';
+    // DEV #3: Lock UI ระหว่าง shuffle — ป้องกัน back/tap ระหว่าง animation
+    isFlying = true;
     const wait = ms => new Promise(r => setTimeout(r, ms));
     async function animate() {
         const stage = document.createElement('div');
@@ -2027,6 +2093,10 @@ function runShuffleAnimation(onComplete) {
         await wait(30);
         const realCards=deck.querySelectorAll('.card-mini');
         realCards.forEach((card,i)=>{const a=parseFloat(card.dataset.angle)||0;card.style.transition='none';card.style.opacity='0';card.style.transform=`rotate(0deg)`;setTimeout(()=>{card.style.transition=`transform 0.55s cubic-bezier(0.175,0.885,0.32,1.275),opacity 0.35s ease`;card.style.transform=`rotate(${a}deg)`;card.style.opacity='1';},20+i*9);});
+        // 🚨 เพิ่ม 3 บรรทัดนี้ เพื่อปลดล็อกให้ไพ่กลับมากดได้ปกติ!
+        setTimeout(() => {
+            isFlying = false;
+        }, 800);
     }
     animate().catch(console.error);
 }

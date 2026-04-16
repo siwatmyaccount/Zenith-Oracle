@@ -533,42 +533,42 @@ body.theme-rose {
 
 /* =========================================
    Phase 2 - ระบบที่ 3: หมอกเวทมนตร์ (Ethereal Smoke Overlay)
+   [อัปเกรด: แก้ปัญหาเครื่องหน่วง/โหลดช้า ตัด Blur ทิ้ง]
 ========================================= */
 .mystic-smoke-container {
-    position: fixed; /* ล็อกไว้ขอบล่างจอเสมอ */
+    position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 45vh; /* ความสูงของหมอกคลุมขึ้นมา 45% ของจอ */
-    
-    /* 🌟 สำคัญมาก: ป้องกันไม่ให้หมอกบังการกดไพ่ทะลุไปถึงข้างหลัง */
+    height: 45vh; 
     pointer-events: none; 
-    
-    z-index: 0; /* ให้อยู่ข้างหลังไพ่ (ไพ่เรา z-index เริ่มที่ 1) */
+    z-index: 0;
     overflow: hidden;
 }
 
 .mystic-smoke {
     position: absolute;
     bottom: -50px;
-    width: 200%; /* ทำให้กว้างกว่าจอเพื่อเวลาขยับจะได้ไม่เห็นขอบตัด */
+    width: 200%;
     left: -50%;
     height: 100%;
     
-    /* ใช้ Gradient สร้างกลุ่มควันสีม่วงและทอง */
-    background: radial-gradient(ellipse at 50% 100%, rgba(147, 112, 219, 0.15) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
-                radial-gradient(ellipse at 20% 80%, rgba(75, 0, 130, 0.15) 0%, transparent 50%);
+    /* 🌟 ใช้ Gradient แบบขอบฟุ้งแทนการเบลอ (ลื่นกว่า 100 เท่า) */
+    background: radial-gradient(ellipse at 50% 100%, rgba(147, 112, 219, 0.2) 0%, rgba(147, 112, 219, 0.05) 40%, transparent 70%),
+                radial-gradient(ellipse at 80% 80%, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.03) 40%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(75, 0, 130, 0.2) 0%, rgba(75, 0, 130, 0.05) 40%, transparent 60%);
     
-    /* เบลอสีให้กลายเป็นหมอก */
-    filter: blur(30px);
+    /* 🚨 ลบ filter: blur(30px) ออกไปแล้ว */
     opacity: 0.8;
     
-    /* สั่งให้ลอยไปมาอย่างช้าๆ นุ่มนวล 12 วินาที */
+    /* บังคับใช้ GPU ช่วยวาดภาพให้เนียนขึ้น */
+    will-change: transform;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    
     animation: smokeDrift 12s infinite alternate ease-in-out;
 }
 
-/* สร้างเลเยอร์หมอกซ้อนทับอีกชั้นให้ดูมีมิติสมจริงขึ้น */
 .mystic-smoke::after {
     content: '';
     position: absolute;
@@ -576,10 +576,15 @@ body.theme-rose {
     left: 10%;
     width: 150%;
     height: 100%;
-    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-    filter: blur(40px);
     
-    /* ลอยสลับทางกับชั้นแรก 15 วินาที */
+    /* 🌟 ไล่สีชั้นที่สองให้มีมิติ */
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 40%, transparent 60%);
+    
+    /* 🚨 ลบ filter: blur(40px) ออกไปแล้ว */
+    will-change: transform;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    
     animation: smokeDrift2 15s infinite alternate-reverse ease-in-out;
 }
 
@@ -618,10 +623,7 @@ body.theme-rose {
     }
 }
 
-/* 📱 ใช้งานออร่ากับมือถือ (ตอนเอานิ้วแตะโฟกัส) */
-.card-mini.focused:not(.picked) {
-    animation: mysticAura 1.2s infinite alternate ease-in-out !important;
-}
+/* .card-mini.focused removed — FIX #5: single-tap ไม่ใช้ focused class แล้ว */
 
 
 /* =========================================
@@ -1436,4 +1438,35 @@ input:focus:not(:focus-visible),
     .glow-text {
         animation: none !important;
     }
+}
+/* =========================================
+   ♿ DEV #5: Accessibility — prefers-reduced-motion
+   ปิด/ลด animation สำหรับผู้ใช้ที่มี vestibular ปัญหา
+========================================= */
+@media (prefers-reduced-motion: reduce) {
+    /* ปิด animation ทั้งหมดที่เคลื่อนไหวต่อเนื่อง */
+    .mystic-smoke, .mystic-smoke::after,
+    .floating-candle, .soul-orb,
+    .magic-circle-bg, .magic-particle,
+    .focus-question { animation: none !important; transition: none !important; }
+
+    /* ลด card flip ให้เร็วขึ้น แทนการปิด */
+    .tarot-flip-inner { transition: transform 0.15s ease !important; }
+
+    /* ปิด shuffle animation — แสดงไพ่ทันที */
+    .shuffle-card { transition: none !important; }
+
+    /* ลด scene transition */
+    .scene.active { animation: none !important; opacity: 1 !important; }
+    .scene { transition: opacity 0.1s ease !important; }
+
+    /* ปิด breathingGlow และ mysticAura */
+    .card-mini:hover:not(.picked),
+    .card-mini.focused:not(.picked) { animation: none !important; }
+
+    /* Oracle typewriter — แสดงข้อความทันที */
+    .typewriter-text { border-right: none !important; }
+
+    /* ลด skeleton shimmer */
+    .skeleton-line { animation: none !important; background: rgba(160,120,255,0.15) !important; }
 }
