@@ -64,39 +64,60 @@ async function generateAIPrediction() {
     window._aiAbortController = new AbortController();
     const signal = window._aiAbortController.signal;
 
-    try {
-        const PROXY_URL = 'https://zenith-oracle-proxy.zenith-oracle.workers.dev';
-        const response = await fetch(PROXY_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal,
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 3000 }
-            })
-        });
+    // 🌟 อัปเกรด: เพิ่มระบบ Auto-Retry พยายามดึงข้อมูลใหม่ 2 รอบถ้าเซิร์ฟเวอร์ Google ล่ม
+    let retries = 2;
+    let success = false;
+    const PROXY_URL = 'https://zenith-oracle-proxy.zenith-oracle.workers.dev';
+    const finalAiBox = document.getElementById('ai-summary-content');
 
-        const data = await response.json();
-        
-        const finalAiBox = document.getElementById('ai-summary-content');
-        if (!finalAiBox) return; 
+    while (retries >= 0 && !success) {
+        try {
+            const response = await fetch(PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal,
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1500 } // ลด Token ลงให้มันคิดไวขึ้น
+                })
+            });
 
-        if (!response.ok) {
-            finalAiBox.innerHTML = `<span style='color:#ff4757;'>⚠️ API Error: ${data.error?.message || "ไม่ทราบสาเหตุ"}</span>`;
-            return;
+            const data = await response.json();
+            if (!finalAiBox) return;
+
+            if (!response.ok) {
+                // ถ้า Error บอกว่า High Demand หรือ 503 ให้ลองใหม่
+                if ((response.status === 503 || (data.error && data.error.message.includes("high demand"))) && retries > 0) {
+                    console.warn(`เซิร์ฟเวอร์เต็ม! กำลังพยายามใหม่... (เหลือสิทธิ์อีก ${retries} ครั้ง)`);
+                    retries--;
+                    await new Promise(r => setTimeout(r, 2000)); // หน่วงเวลา 2 วิแล้วยิงซ้ำ
+                    continue;
+                }
+                finalAiBox.innerHTML = `<span style='color:#ff4757;'>⚠️ เกิดข้อผิดพลาดจาก AI: ${data.error?.message || "ไม่ทราบสาเหตุ"}</span>`;
+                break;
+            }
+            
+            if (data.candidates && data.candidates.length > 0) {
+                const aiText = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+                finalAiBox.innerHTML = aiText;
+                success = true;
+            } else {
+                finalAiBox.innerHTML = "<span style='color:#ff4757;'>⚠️ AI ไม่สามารถให้คำตอบได้ในขณะนี้</span>";
+                break;
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            
+            if (retries > 0) {
+                retries--;
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+            }
+            
+            console.error("Fetch Error:", error);
+            if(finalAiBox) finalAiBox.innerHTML = `<span style='color:#ff4757;'>⚠️ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง</span>`;
+            break;
         }
-        
-        if (data.candidates && data.candidates.length > 0) {
-            const aiText = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
-            finalAiBox.innerHTML = aiText;
-        } else {
-            finalAiBox.innerHTML = "<span style='color:#ff4757;'>⚠️ AI ส่งคำตอบกลับมาเป็นค่าว่าง</span>";
-        }
-    } catch (error) {
-        if (error.name === 'AbortError') return; // ยกเลิก request โดยตั้งใจ ไม่ต้องแสดง error
-        console.error("Fetch Error:", error);
-        const finalAiBox = document.getElementById('ai-summary-content');
-        if(finalAiBox) finalAiBox.innerHTML = `<span style='color:#ff4757;'>⚠️ เกิดข้อผิดพลาด: ${error.message}</span>`;
     }
 }
 
@@ -1827,16 +1848,8 @@ function toggleReadPrediction() {
     btn.innerHTML = `<i data-lucide="square"></i> หยุดฟัง`;
     if(window.lucide) lucide.createIcons();
 
-    // รอ voices พร้อมก่อน (โดยเฉพาะ Android)
-    if (window.speechSynthesis.getVoices().length > 0) {
-        doSpeak();
-    } else {
-        window.speechSynthesis.onvoiceschanged = () => { doSpeak(); };
-        // Fallback: ถ้า onvoiceschanged ไม่ fire ใน 1 วิ ให้ speak เลย
-        setTimeout(() => {
-            if (isReading && !utterance) doSpeak();
-        }, 1000);
-    }
+   // 🌟 เรียกใช้งานเสียงทันทีเมื่อกดปุ่ม (บังคับเพื่อให้มือถือยอมปล่อยเสียง)
+    doSpeak();
 }
 
 let lastDustTime = 0; // ตัวแปรเก็บเวลาสำหรับ Throttle
